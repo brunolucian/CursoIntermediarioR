@@ -37,3 +37,8 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+.RData
+_publish.R
+_book
+_bookdown_files
+rsconnect
