@@ -49,9 +49,9 @@ Possui bacharelado em Estatística pela UFPE e desde 2014 atua como analista de 
 
 # Bem-vindo! {-}
 
-Caro aluno, este é o repositório do livro texto do curso de Intermedi´ario à Análise de Dados em R. Nele constam os principais conceitos e códigos que serão abordados ao longo do curso. Para reproduzir os códigos, é necessário utilizar uma versão recente do R e que os pacotes estejam atualizados. Os pacotes serão apresentados de acordo com o tema abordado em cada seção para utilização das funções referentes a cada assunto.
+Caro aluno, este é o repositório do livro texto do curso de Intermediário à Análise de Dados em R. Nele constam os principais conceitos e códigos que serão abordados ao longo do curso. Para reproduzir os códigos, é necessário utilizar uma versão recente do R e que os pacotes estejam atualizados. Os pacotes serão apresentados de acordo com o tema abordado em cada seção para utilização das funções referentes a cada assunto.
 
-Serão disponibilizados conjunto de dados para realizar as atividades propostas em aula e eles serão disponibilizados no repositório Git deste livro, na pasta datasets:
+Serão disponibilizados conjunto de dados para realizar as atividades propostas em aula e eles estarão acessíveis no repositório Git deste livro, na pasta *Dados*:
 
 O Curso também utilizará o [__RStudio__](https://www.rstudio.com/download), um Ambiente Integrado de Desenvolvimento (IDE - _Integrated Development Environment_), e se recomenda a utilização da versão mais recente do mesmo.
 
@@ -77,4 +77,10 @@ Atualmente, há diversos ambientes e linguagens utilizadas para Análise de Dado
 
 ## Organização do Curso {-}
 
-Este curso é dividido em 6 Módulos. O Módulo 1 busca revisar conceitos básicos da linguagem, passando pelo histórico, potencialidades, instalação e funcionalidades básicas do R. O Módulo 2 contém instruções para trabalhar com scripts, Boas Práticas no uso da Linguagem R, como criar projetos e importar dados. Já o Módulo 3 apresentará Noções de Programação, definição de função, como criar uma função e importância de utilizar uma função. Em seguida serão abordadas as principais funções de manipulação de dados (Módulo 4) e de visualização de dados (Módulo 6). E, finalmente, apresentar as principais funcionalidades do RMarkdown para geração de relatórios. 
+Este curso é dividido em 6 Módulos. 
+O Módulo 1, busca revisar conceitos básicos da linguagem, assim como a manipulação de dados usando o *dplyr* e trazer como novidade a junção entre tabelas usando o conceito de *joins*.  
+O Módulo 2, contém instruções para trabalhar pivoteamento de tabelas, dados faltantes e dataframes aninhados. 
+O Módulo 3, vamos entrar no mundo das *strings*, aprendendo a detectar padrões, concatenar ou separar strings e substituir padrões.
+O Módulo 4, vamos aprender a trabalhar com fatores e lidar datas.
+O Módulo 5, vamos introduzir o conceito da programação funcional a partir do pacote *purrr*
+O Módulo 6, vamos ter a oportunidade de conhecer algumas ferramentas de visualização web, dentro do framework shiny.
