@@ -22,7 +22,7 @@ Vamos ver aqui algumas de suas principais funções:
 
 - `nest()` e `unnest()`: para criar *list columns*.
 
-Como motivação para utilizar esssas funções, 
+Como motivação para utilizar esssas funções.
 
 ```{r, include = FALSE}
 library(dplyr)
