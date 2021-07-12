@@ -22,7 +22,7 @@ Vamos ver aqui algumas de suas principais funções:
 
 - `nest()` e `unnest()`: para criar *list columns*.
 
-Como motivação para utilizar esssas funções, vamos utilizar a nossa boa e velha base `imdb`. Essa base pode ser baixada [clicando aqui](https://github.com/curso-r/livro-material/raw/master/assets/data/imdb.rds).
+Como motivação para utilizar esssas funções, 
 
 ```{r, include = FALSE}
 library(dplyr)
