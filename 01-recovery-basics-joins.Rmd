@@ -1,5 +1,10 @@
 #  Revisão básica e Joins {#intro}
 
+Script da aula do Módulo intro abaixo.
+```{r, echo=FALSE}
+xfun::embed_file('Scripts/aula1.Rmd')
+```
+
 ## Controle de Fluxo
 
 Os controles de fluxo são operações definidas em todas as linguagens de programação, como por exemplo Python, C, C++, Java, Fortran, Pascal, etc. Como não podia deixar de ser, tais operações também estão definidas dentro da linguagem R.
@@ -836,6 +841,40 @@ tb_game_sales %>%
 
 **DICA:** Note que o nome do _tibble_ ou dataframe só precisa ser informado uma única vez logo ao início do processo.
 
+
+## Juntando bases
+
+Podemos juntar duas tabelas a partir de uma (coluna) `chave` utilizando a função `left_join()`. 
+
+```{r}
+
+orders <- read_csv("https://raw.githubusercontent.com/brunolucian/CursoIntermediarioR/main/Dados/olist_orders_dataset.csv")
+
+items <- read_csv("https://raw.githubusercontent.com/brunolucian/CursoIntermediarioR/main/Dados/olist_order_items_dataset.csv")
+
+```
+
+Basta usar a função `left_join()` utilizando a coluna `order_id` como `chave`. Observe que as colunas `itens` aparece agora no fim da tabela.
+
+```{r}
+orders_items <- left_join(orders, items, by="order_id")
+orders_items
+```
+
+
+Além da função `left_join()`, também são muito utilizadas as funções `right_join()` e `full_join()`.
+
+- `right_join()`: retorna todas as linhas da base `y` e todas as colunas das bases `x` e `y`. Linhas de `y` sem correspondentes em `x` receberão `NA` na nova base.
+
+- `full_join()`: retorna todas as linhas e colunas de `x`e `y`. Valores sem correspondência entre as bases receberão `NA` na nova base.
+
+A figura a seguir esquematiza as operações dessas funções:
+
+```{r dplyr-joins, echo=FALSE, fig.align='center'}
+knitr::include_graphics('fig/joins.png')
+```
+
+
 ***
 
 ## Referências da seção
@@ -862,38 +901,3 @@ tb_game_sales %>%
 
 ***
 ***
-
-### Juntando bases
-
-Podemos juntar duas tabelas a partir de uma (coluna) `chave` utilizando a função `left_join()`. 
-
-```{r}
-
-orders <- read_csv("https://raw.githubusercontent.com/brunolucian/CursoIntermediarioR/main/Dados/olist_orders_dataset.csv")
-
-items <- read_csv("https://raw.githubusercontent.com/brunolucian/CursoIntermediarioR/main/Dados/olist_order_items_dataset.csv")
-
-```
-
-Basta usar a função `left_join()` utilizando a coluna `order_id` como `chave`. Observe que as colunas `itens` aparece agora no fim da tabela.
-
-```{r}
-inner <- inner_join(orders, items, by="order_id")
-inner
-```
-
-
-Além da função `left_join()`, também são muito utilizadas as funções `right_join()` e `full_join()`.
-
-- `right_join()`: retorna todas as linhas da base `y` e todas as colunas das bases `x` e `y`. Linhas de `y` sem correspondentes em `x` receberão `NA` na nova base.
-
-- `full_join()`: retorna todas as linhas e colunas de `x`e `y`. Valores sem correspondência entre as bases receberão `NA` na nova base.
-
-A figura a seguir esquematiza as operações dessas funções:
-
-```{r dplyr-joins, echo=FALSE, fig.align='center'}
-knitr::include_graphics('fig/joins.png')
-```
-
-
-
