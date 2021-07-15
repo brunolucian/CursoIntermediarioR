@@ -5,13 +5,15 @@ Script da aula do Módulo intro abaixo.
 xfun::embed_file('Scripts/aula1.Rmd')
 ```
 
-## Controle de Fluxo
+## Programação basica
+
+### Controle de Fluxo
 
 Os controles de fluxo são operações definidas em todas as linguagens de programação, como por exemplo Python, C, C++, Java, Fortran, Pascal, etc. Como não podia deixar de ser, tais operações também estão definidas dentro da linguagem R.
 
 Cada linguagem de programação tem a sua própria sintaxe, isto é, sua própria regra de como essas operações devem ser usadas. Nesta aula será abordada a sintaxe e mais detalhes sobre alguns controles de fluxo para a linguagem R.
 
-## Estrutura Condicional IF-ELSE
+### Estrutura Condicional IF-ELSE
 
 Uma instrução `if` permite que você execute código condicionalmente, ou seja, apenas uma parte do código será executada e *apenas se alguma condição for atendida*. E se parece com isso:
 
@@ -38,7 +40,7 @@ if (condicao) {
 Essa instrução lógica funciona analisando cada condição. O par de parênteses seguidos do `if` tem que ter um `objeto` do tipo `"logical"`. Os comandos dentro do primeiro par de chaves serão executados caso o `objeto condicao` seja `TRUE`. Caso contrário, os comandos de dentro do par de chaves depois do `else` serão executados. O comando `else` é opcional, como foi mostrado anteriormente. No caso do `else` não aparecer, nada será executado caso o `objeto condicao` seja `FALSE`.
 
 
-### _Exemplos_
+#### _Exemplos_
 
 O exemplo a seguir terá como resultado texto impresso na tela. O que será impresso depende do valor guardado na variável x. Se x receber o valor menor que 5,  um texto será impresso, caso contrário, outro texto aparecerá na tela.
 
@@ -87,12 +89,12 @@ if (numero == 1) {
 
 
 ```
-## Iteradores
+### Iteradores
 
 A iteração ajuda quando você precisa fazer a mesma coisa com várias entradas, como por exemplo: repetir a mesma operação em colunas diferentes ou em conjuntos de dados diferentes. 
 Existem ferramentas como loops `for` e `while`, que são um ótimo lugar para começar porque tornam a iteração muito explícita, então é óbvio o que está acontecendo. 
 
-### FOR Loops
+#### FOR Loops
 
 No entanto, os loops `for` podem ser bastante prolixos e requerem um pouco de código que é duplicado para cada loop `for` o que não é algo prático de dar manutenção. 
 
@@ -154,7 +156,7 @@ Claro que não vai ser criado um vetor de comprimento zero deliberadamente, mas 
 
 Isso é tudo que existe para o loop `for`! Agora é momento para praticar!
 
-### Variações em FOR Loops
+#### Variações em FOR Loops
 
 Depois de ter o loop for básico em seu currículo, existem algumas variações das quais você deve estar ciente.
 
@@ -321,7 +323,7 @@ Escrever boas funções é uma jornada para a vida toda. O objetivo deste módul
 
 Além disso, algumas sugestões sobre como definir o estilo de seu código. Um bom estilo de código é como a pontuação correta. Você pode gerenciar sem ele, mas com certeza ele torna as coisas mais fáceis de ler! Tal como acontece com os estilos de pontuação, existem muitas variações possíveis. 
 
-## Quando eu devo escrever uma função?
+### Quando eu devo escrever uma função?
 
 Você deve considerar escrever uma função sempre que copiou e colou um bloco de código mais de duas vezes (ou seja, agora você tem três cópias do mesmo código).
 
@@ -382,7 +384,7 @@ Outra vantagem das funções é que, se nossos requisitos mudarem, só precisare
 
 Criar funções é uma parte importante do princípio _“do not repeat yourself” (or DRY)_. Quanto mais repetição você tiver em seu código, mais lugares você precisará se lembrar de atualizar quando as coisas mudarem (e sempre mudam!) E maior será a probabilidade de você criar bugs com o tempo.
 
-## Funções são para humanos e computadores
+### Funções são para humanos e computadores
 
 É importante lembrar que as funções não são apenas para o computador, mas também para humanos. `R` não se importa com o que sua função é chamada, ou quais comentários ela contém, mas estes são importantes para leitores humanos. 
 
@@ -428,7 +430,7 @@ text_input()
 ```
 
 
-## Argumentos de função
+### Argumentos de função
 
 Os argumentos para uma função normalmente se enquadram em dois conjuntos amplos: um conjunto fornece os dados para calcular e o outro fornece argumentos que controlam os detalhes do cálculo. Por exemplo:
 
@@ -439,8 +441,9 @@ Os argumentos para uma função normalmente se enquadram em dois conjuntos amplo
 Em `str_c()` você pode fornecer qualquer número de strings para `...`, e os detalhes da concatenação são controlados por `sep` e `collapse`.
 
 Geralmente, os argumentos de dados devem vir primeiro. Os argumentos de detalhes devem ir no final e geralmente devem ter valores padrão. Você especifica um valor padrão da mesma maneira que chama uma função com um argumento nomeado.
+## Boas práticas
 
-## Nomeando variáveis
+### Nomeando variáveis
 
 Os nomes dos argumentos também são importantes. O `R` mais uma vez não se importa, mas os leitores de seu código (incluindo você-futuro!) sim. Geralmente você deve preferir nomes mais longos e descritivos, mas há um punhado de nomes muito comuns e muito curtos. Vale a pena memorizar estes:
 
@@ -454,7 +457,7 @@ Os nomes dos argumentos também são importantes. O `R` mais uma vez não se imp
 Caso contrário, considere combinar nomes de argumentos em funções `R` existentes. Por exemplo, use `na.rm` para determinar se os valores ausentes devem ser removidos.
 
 
-## Ambiente (Environment)
+### Ambiente (Environment)
 
 O último componente de uma função é seu ambiente. Isso não é algo que você precisa entender profundamente quando começa a escrever funções. No entanto, é importante saber um pouco sobre os ambientes porque eles são cruciais para o funcionamento das funções. O ambiente de uma função controla como R encontra o valor associado a um nome. Por exemplo, use esta função:
 

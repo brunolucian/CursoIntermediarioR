@@ -5,6 +5,7 @@ Script da aula do Módulo II abaixo.
 xfun::embed_file('Scripts/02-tidying-data.R')
 ```
 
+## Conceito tidy
 
 Dentro do `tidyverse`, um dataset *tidy* é uma base fácil de se trabalhar, isto é, fácil de se fazer manipulação de dados, criar visualizações e de se ajustar modelos. 
 
