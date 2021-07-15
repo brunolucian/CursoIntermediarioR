@@ -1,0 +1,354 @@
+---
+title: "Aula 1 - Intro"
+author: "Bruno Lucian"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+---
+
+# Roteiro Aula 1 
+
+## Revisão 
+
+### Tipos de Objetos 
+
+- Vetor
+
+```{r}
+v1 <- c(1, 0.2, 0.3, 2, 2.8); v1
+```
+
+
+
+- Matriz 
+  - Criando uma matriz vazia
+
+```{r}
+matriz <- matrix(nrow = 20, ncol = 20)
+```
+
+- Data frames
+
+```{r}
+v6 <- 11:15
+v7 <- seq(0.3, 0.7, by=0.1)
+v8 <- rep("CEPERJ", 5)
+v9 <- rep(c(TRUE, FALSE), 5)
+df1 <- data.frame(v6, v7, v8, v9)
+df1
+
+```
+
+
+
+- renomeando as colunas do dataframe
+
+```{r}
+df1 <- data.frame(col1 = v6, col2 = v7, col3 = v8, col4 = v9)
+
+```
+
+
+```{r}
+names(df1) <- c("Vetor1", "Vetor2", "Vetor3", "Vetor4")
+```
+
+```{r}
+df1
+```
+
+
+- Estrutura do df
+
+```{r}
+str(df1)
+```
+
+- dimensão do df
+
+```{r}
+dim(df1)
+```
+
+
+
+- número de linhas
+
+```{r}
+nrow(df1)
+```
+
+- número de colunas
+
+```{r}
+ncol(df1)
+```
+- única linha
+
+```{r}
+df1[3, ]
+```
+
+
+- algumas linhas
+
+```{r}
+df1[c(1,2,5), ]
+```
+
+
+
+- uma sequência de linhas
+
+```{r}
+df1[3:5, ]
+```
+
+- forma alternativa de selecionar coluna
+
+```{r}
+df1[, "Vetor4"]
+```
+
+- soma de vetor logico
+```{r}
+sum(df1[, "Vetor4"])
+```
+
+
+- outra forma alternativa de selecionar coluna
+
+```{r}
+df1$Vetor3
+```
+
+
+- Listas
+
+```{r}
+x <- list(5, "Casas", v1, v9, v8)
+x
+```
+
+
+- verificando a classificação do objeto x
+
+```{r}
+class(x)
+```
+-  extraindo elementos da lista
+
+```{r}
+
+x[[2]]
+x[c(3,1)]
+x[[3]][3]
+
+```
+
+
+
+- For 
+  - Definindo os elementos da matriz
+
+```{r}
+
+for(i in 1:nrow(matriz)){
+  for(j in 1:ncol(matriz)){
+    matriz[i,j] <- i*j
+  }
+}
+
+```
+
+- 5 verbos 
+  - select 
+  - filter
+  - mutate 
+  - summarise
+  - arrange
+
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+
+customers <- read_csv("https://raw.githubusercontent.com/brunolucian/CursoIntermediarioR/main/Dados/olist_customers_dataset.csv")
+
+```
+
+
+
+- Quantidade de clientes por estado
+
+```{r}
+customers %>%
+  group_by(customer_state) %>%
+  summarise(count_client = n_distinct(customer_unique_id),
+            count_n = n())
+```
+
+
+- ordenando os estados pela quantidade de clientes (crescente)
+
+```{r}
+
+customers %>%
+  group_by(customer_state) %>%
+  summarise(count = n_distinct(customer_unique_id)) %>%
+  arrange(count)
+
+```
+
+
+
+- ordenando os estados pela quantidade de clientes (decrescente)
+
+```{r}
+
+  customers %>%
+  group_by(customer_state) %>%
+  summarise(count = n_distinct(customer_unique_id)) %>%
+  arrange(desc(count)) %>% 
+  ggplot(aes(x = reorder(customer_state, -count), y = count)) +
+  geom_bar(stat = "identity") + 
+  xlab("State")
+
+  # arrange(
+  #   summarise(
+  #     group_by(
+  #       customers, customer_state), 
+  #     count = n_distinct(customer_unique_id)
+  #     )
+  #   , count)
+  
+  
+  
+
+
+```
+
+
+- Cidades com maior e com menor número de clientes
+  - tibble com a quantidade de clientes na cidade
+  
+```{r}
+
+customers %>%
+  group_by(customer_state, customer_city) %>%
+  summarise(count = n_distinct(customer_unique_id))
+
+```
+  
+
+
+- Identificando a cidade com mais clientes
+
+```{r}
+
+customers %>%
+  group_by(customer_city) %>%
+  summarise(count = n_distinct(customer_unique_id)) %>%
+  # filter(count == max(count))
+  top_n(5)
+
+
+```
+
+
+- identificando as cidades com menos clientes
+
+```{r}
+
+customers %>%
+  group_by(customer_city) %>%
+  summarise(count = n_distinct(customer_unique_id)) %>%
+  filter(count == min(count))
+
+```
+
+
+- Calculando o percentual de clientes por estado
+
+```{r}
+
+customers %>%
+  group_by(customer_state) %>%
+  summarise(count = n_distinct(customer_unique_id)) %>%
+  mutate(percent_client = count/sum(count)*100)
+
+```
+
+
+
+- Selecionando o percentual de clientes por estado
+
+```{r}
+
+customers %>%
+  group_by(customer_state) %>%
+  summarise(count = n_distinct(customer_unique_id)) %>%
+  mutate(percent_client = count/sum(count)*100) %>%
+  select(starts_with("c"))
+
+```
+
+
+## Join 
+
+```{r}
+
+orders <- read_csv("https://raw.githubusercontent.com/brunolucian/CursoIntermediarioR/main/Dados/olist_orders_dataset.csv")
+
+products <- read_csv("https://raw.githubusercontent.com/brunolucian/CursoIntermediarioR/main/Dados/olist_products_dataset.csv")
+
+items <- read_csv("https://raw.githubusercontent.com/brunolucian/CursoIntermediarioR/main/Dados/olist_order_items_dataset.csv")
+
+
+```
+
+### inner join 
+
+```{r}
+
+inner <- inner_join(orders, items, by="order_id")
+
+inner
+
+```
+
+### left join 
+
+```{r}
+
+left <- left_join(orders, items, by="order_id")
+
+left_merge <- merge(orders, items, by = "order_id", all.x = T)
+
+left
+```
+
+### right join 
+
+```{r}
+
+right <- right_join(items, products, by="product_id")
+
+right
+```
+
+### full join 
+
+```{r}
+
+full <- full_join(customers, orders, by="customer_id")
+
+full
+```
+
+
