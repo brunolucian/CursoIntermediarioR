@@ -885,19 +885,4 @@ knitr::include_graphics('fig/joins.png')
 
 - Wickham, H.; Grolemund, G. (2016). _R for Data Science: Import, Tidy, Transform, Visualize, and Model Data_. O'Reilly Media. december 2016. 522 pages. Disponível em: [https://www.r4ds.co.nz](https://www.r4ds.co.nz).
 
-### Exercícios
 
-1) Importe a tabela selecionada contendo uma projeção do Censo Escolar Agregado por número de alunos por etapa de ensino para os anos de 2020 e 2021 [](https://xxxxxx).
-
-2) Qual é o número de alunos por série de ensino em 2019? Escreva uma nova tabela txt ou csv com esses dados.
-
-3) Agrupe os dados pelos UFs de SP, RJ e MG e salve uma tabela separada (txt ou csv) para cada um dos agrupamentos. **DICA:** Pesquise sobre como separar dataframes por grupos com dplyr e como indexar listas.
-<!-- https://dplyr.tidyverse.org/reference/group_split.html -->
-
-4) Identifique o estado com menor número de alunos projetado para 2020.
-
-5) Crie e salve uma nova tabela contendo o número de escolas por UF.
-
-
-***
-***
