@@ -1,5 +1,11 @@
 # O pacote tidyr {#tidyr}
 
+Script da aula do Módulo II abaixo.
+```{r, echo=FALSE}
+xfun::embed_file('Scripts/02-tidying-data.R')
+```
+
+
 Dentro do `tidyverse`, um dataset *tidy* é uma base fácil de se trabalhar, isto é, fácil de se fazer manipulação de dados, criar visualizações e de se ajustar modelos. 
 
 Na prática, uma base *tidy* é aquela que se encaixa bem no *framework* do `tidyverse`, pois os pacotes como o `dplyr` e o `ggplot2` foram desenvolvidos para funcionar bem com *bases tidy*(**Dados organizados**). 
@@ -341,32 +347,7 @@ tibble(x = 1:2, y = list(1:4, 1))
 ```
 
 ```{r}
-tibble(x = 1:2, y = list(seq(1,100,20), 1)) %>% unnest(y)
+tibble(x = 1:2, y = list(seq(1,10,2), 1)) %>% unnest(y)
 ```
 
-Ou seja, você não pode desaninhar duas colunas que contêm um número diferente de elementos ao mesmo tempo
 
-
-```{r}
-
-df1 <- tribble(
-  ~x, ~y,           ~z,
-   1, letters[3:4], 12:13,
-   2, "c",           3
-)
-
-df1
-df1 %>% unnest(c(y, z))
-
-# Não funciona pq y e z não tem mesmo tamanho
-df2 <- tribble(
-  ~x, ~y,           ~z,
-   1, "a",         3:4,  
-   2, LETTERS[12:13],   3
-)
-df2
-
-df2 %>% unnest(c(y, z))
-
-```
-Isso se aplica ao desaninhar colunas de listas de *dataframes*. Você pode desaninhar várias list-cols, desde que todos os *dataframe* em cada linha tenham o mesmo número de linhas.

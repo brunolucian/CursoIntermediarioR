@@ -877,6 +877,17 @@ knitr::include_graphics('fig/joins.png')
 
 ***
 
+## Execícios 
+
+Usando os dados da Olist apresentados neste módulo responda: 
+
+1. Em que cidades os consumidores moram?
+2. Qual o valor médio dos pedidos?
+3. As pessoas preferem pagar com boleto ou cartão?
+4. Em quantas parcelas?
+5. Em que datas há mais vendas?
+
+
 ## Referências da seção
 
 - Wickham H.; François, R.; Henry, L.; Müller K. (2019). _dplyr: A Grammar of Data Manipulation_. R package version 0.8.1. URL [https://CRAN.R-project.org/package=dplyr](https://CRAN.R-project.org/package=dplyr).
