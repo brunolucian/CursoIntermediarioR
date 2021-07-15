@@ -68,7 +68,7 @@ library(tidyverse)
 
 ```
 
-### Pivotagem
+## Pivotagem
 
 O princípio de pivotagem no *tidyverse* se refere a mudança da estrutura da base, normalmente para alcançar o formato *tidy*. 
 
@@ -92,7 +92,7 @@ Esses formatos são sempre relativos às colunas que estão sendo pivotadas, sen
 
 Antigamente, utilizávamos as funções `gather()` e `spread()` para fazer as operações de pivotagem.
 
-#### Long data
+### Long data
 
 Agora, no lugar de `gather()`, utilizamos a função `pivot_longer()`. 
 
@@ -125,7 +125,7 @@ Obs: Observe que “1999” e “2000” são nomes não sintáticos (porque ele
 
 `pivot_longer()` torna os `datasets` mais longos, **aumentando** o número de **linhas** e **diminuindo** o número de **colunas**. 
 
-#### Wide data
+### Wide data
 
 `pivot_wider()` é o oposto de `pivot_longer()`. Você o usa quando uma observação está espalhada por várias linhas. Como por exemplo a tabela 2: onde uma observação é um país em um ano, mas cada observação é distribuída por duas linhas.
 
@@ -150,8 +150,10 @@ table2 %>%
 
 Como você deve ter adivinhado por seus nomes, `pivot_wider()` e `pivot_longer()` são complementos. `pivot_longer()` torna as tabelas amplas em estreitas e mais longas. Já a função `pivot_wider()` torna as tabelas longas em curtas e amplas.
 
-#### Separando informações de uma mesma célula
 
+## Separando e unindo 
+
+### Separando informações de uma mesma célula
 
 `separate()` é a função que separa uma coluna em várias colunas, dividindo onde quer que apareça um caractere separador.
 Para ilustrar vamos usar a `tabela3`:
@@ -170,8 +172,6 @@ table3 %>%
 ```
 
 Por padrão, `separate()` dividirá os valores sempre que vir um caractere *não alfanumérico* (ou seja, um caractere que não é um número ou letra). Por exemplo, no código acima, foi divido os valores da coluna `rate` no caractere de barra. Se você deseja usar um caractere específico para separar uma coluna, você pode passar o caractere para o argumento `sep` de `separate()`. Por exemplo, podemos reescrever o código acima como:
-
-
 
 ```{r}
 
@@ -209,7 +209,7 @@ table_separate
 
 ```
 
-#### Unindo informações em uma unica celula
+### Unindo informações em uma unica celula
 
 
 `unite()` é o inverso de `separate()`: ele combina várias colunas em uma única coluna. è provavel que você irá precisar dele com muito menos frequência do que `separate()`, mas ainda é uma ferramenta útil para se ter.
@@ -228,7 +228,7 @@ table_separate %>%
   unite(Ano_Cheio, Seculo, Ano, sep = "")
 ```
 
-#### Dados faltantes
+## Dados faltantes
 
 Alterar a representação de um conjunto de dados traz à tona uma importante sutileza de valores ausentes. Surpreendentemente, um valor pode estar faltando em uma das duas maneiras possíveis:
 
@@ -274,6 +274,8 @@ stocks %>%
   )
 ```
 
+### `complete()`
+
 Outra função importante para tornar **explícitos** os valores ausentes em dados organizados é `complete()`:
 
 ```{r}
@@ -281,6 +283,8 @@ stocks %>%
   complete(Anos, Tri)
 ```
 O comando `complete()` pega um conjunto de colunas e encontra todas as combinações únicas. Em seguida, garante que o conjunto de dados original contém todos esses valores, preenchendo `NAs` **explícitos** quando necessário.
+
+### `fill()`
 
 Há uma outra ferramenta importante que você deve saber para trabalhar com valores ausentes. Às vezes, quando uma fonte de dados foi usada principalmente para entrada de dados, os valores ausentes indicam que o valor anterior deve ser utilizado:
 
@@ -302,7 +306,9 @@ tratamento %>%
 
 ```
 
-#### Dados aninhados
+## Dados aninhados
+
+### `Nest()`
 
 Vamos agora apresentar uma nova estrutura de dados, os dados aninhados. Para criar um `dataset` aninhado, começamos com um `dataset` de dados agrupado e o “aninhamos”:
 
@@ -326,14 +332,41 @@ by_country$data[[15]]
 ```
 Observe a diferença entre um *dataframe* agrupados padrão e um *dataframe* aninhado: em um *dataset* agrupado, cada linha é uma observação, e em um *dataset* aninhado, cada linha é um **grupo**. Outra maneira de pensar sobre um *dataframe* aninhado é que agora temos uma *meta-observação*: uma linha que representa o curso de tempo completo de um país, em vez de um único ponto no tempo.
 
-#### Removendo aninhamento dos dados
+### Removendo aninhamento dos dados
 
-Ainda em construção...
+A função `unnest()` funciona repetindo as colunas regulares uma vez para cada elemento da *coluna-lista*. Por exemplo, no exemplo a seguir, repetimos a primeira linha 4 vezes (porque lá o primeiro elemento de y tem comprimento quatro) e a segunda linha uma vez:
+
+```{r}
+tibble(x = 1:2, y = list(1:4, 1)) 
+```
+
+```{r}
+tibble(x = 1:2, y = list(seq(1,100,20), 1)) %>% unnest(y)
+```
+
+Ou seja, você não pode desaninhar duas colunas que contêm um número diferente de elementos ao mesmo tempo
 
 
 ```{r}
-rnorm(100)
+
+df1 <- tribble(
+  ~x, ~y,           ~z,
+   1, letters[3:4], 12:13,
+   2, "c",           3
+)
+
+df1
+df1 %>% unnest(c(y, z))
+
+# Não funciona pq y e z não tem mesmo tamanho
+df2 <- tribble(
+  ~x, ~y,           ~z,
+   1, "a",         3:4,  
+   2, LETTERS[12:13],   3
+)
+df2
+
+df2 %>% unnest(c(y, z))
+
 ```
-
-
-
+Isso se aplica ao desaninhar colunas de listas de *dataframes*. Você pode desaninhar várias list-cols, desde que todos os *dataframe* em cada linha tenham o mesmo número de linhas.
