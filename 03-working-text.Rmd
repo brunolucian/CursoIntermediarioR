@@ -1,5 +1,10 @@
 # Trabalhando com textos
 
+Script da aula do Módulo III abaixo.
+```{r, echo=FALSE}
+xfun::embed_file('Scripts/03-working-text.R')
+```
+
 ## Exemplos reprodutiveis 
 
 ### Reprex (Pedindo ajuda do jeito certo)
