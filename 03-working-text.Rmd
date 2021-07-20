@@ -304,7 +304,7 @@ Essas são as funções mais simples do pacote `stringr` e não exigem nenhum
 conhecimento de **expressões regulares**. Note que nenhuma delas possui o 
 parâmetro `pattern`. Você verá como especificar esse parâmetro nas próximas seções. 
 
-### Expressões Regulares
+## Expressões Regulares
 
 Trabalhar com textos exige um certo conhecimento de [expressões regulares](https://pt.wikipedia.org/wiki/Express%C3%A3o_regular). 
 As expressões regulares --- ou simplesmente **regex** --- permitem identificar 
@@ -331,7 +331,7 @@ assim como o "\$".
 ::: {.center data-latex=""}
 **Importante!**
 :::
-o valor passado para o argumento `pattern` de qualquer função do pacote `stringr` 
+o valor passado para o argumento *pattern* de qualquer função do pacote *stringr* 
 será entendido como uma **regex**.
 ::::
 
@@ -364,14 +364,14 @@ expressoes <- list(
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 list(strings = s, expressoes = expressoes) %>%
-  cross_d() %>%
+  cross_df() %>%
   distinct() %>%
   mutate(detect = str_detect(s, expressoes)) %>%
   spread(expressoes, detect) %>%
   knitr::kable()
 ```
 
-##### Quantificadores {-}
+#### Quantificadores {-}
 
 Os caracteres `+`, `*` e `{x,y}` indicam quantas vezes um padrão se repete:
 
@@ -384,7 +384,7 @@ Os caracteres `+`, `*` e `{x,y}` indicam quantas vezes um padrão se repete:
 
 Para aplicar um quantificador a um conjunto de caracteres, use parênteses. Por exemplo, `(ey )+` reconhece `ey ey `.
 
-##### Conjuntos {-}
+#### Conjuntos {-}
 
 Colocando caracteres dentro de `[]`, reconhecemos quaisquer caracteres desse conjunto. Alguns exemplos práticos:
 
@@ -398,22 +398,48 @@ Colocando caracteres dentro de `[]`, reconhecemos quaisquer caracteres desse con
 
 - Use `[[:space:]]+` para reconhecer espaços e `[[:punct:]]+` para reconhecer pontuações.
 
-##### Miscelânea {-}
+    - Existem várias classes pré-construídas que você pode usar dentro de []:
+      - [:punct:]: pontuação.
+      - [:alpha:]: letras.
+      - [:lower:]: letras minusculas.
+      - [:upper:]: letras maiusculas.
+      - [:digit:]: digitos.
+      - [:xdigit:]: dígitos hexadecimais.
+      - [:alnum:]: letras e números.
+      - [:cntrl:]: caracteres de controle.
+      - [:graph:]: letras, números e pontuação.
+      - [:print:]: letras, números, pontuação e espaços.
+      - [:space:]: caracteres de espaço (basicamente equivalente a \ s).
+      - [:blank:]: espaço and tab.
+
+#### Miscelânea {-}
 
 - Use `|` para opções. Por exemplo, `desfavor|desprov` reconhece tanto "desfavorável" quanto "desprovido".
 
 - O código `\n` pula linha, `\f` é final da página, `\t` é tab. Use `\` para transformar caracteres especiais em literais.
 
+### Escaping
+
+Se "." corresponde a qualquer caractere, como você combina um “.” literal? 
+Você precisa usar um “escape” para dizer à expressão regular que você deseja 
+corresponder exatamente, não usar seu comportamento especial. 
+Como strings, regexs usam a barra invertida, `\`, para escapar de um comportamento especial. 
+Portanto, para corresponder a um ., Você precisa do regexp `\.`. Infelizmente, 
+isso cria um problema. Usamos strings para representar expressões regulares e `\` 
+também é usado como um símbolo de escape em strings. Portanto, para criar a 
+expressão regular `\.` precisamos da string `\\.`.
+
+
 A lista de possibilidades com expressões regulares é extensa. 
 Um bom lugar para testar o funcionamento das regex é o [regex101](https://regex101.com/).
 
-### Funções que utilizam regex
+## Funções que utilizam regex
 
 Agora que já vimos as funções básicas do `stringr` e aprendemos um pouco de regex, vamos às funções mais avançadas. Basicamente, essas funções buscarão `patterns` em um vetor de *strings* e farão alguma coisa quando encontrá-lo.
 
 Como já vimos na sessão sobre regex, a função mais simples que possui o argumento `pattern=` é a `str_detect()`.
 
-##### str_detect()  {-}
+#### str_detect()  {-}
 
 Retorna `TRUE` se a regex é compatível com a string e `FALSE` caso contrário.
 
@@ -423,7 +449,7 @@ str_detect("sao paulo", pattern = "paulo$")
 str_detect("sao paulo sp", pattern = "paulo$")
 ```
 
-##### str_replace() e str_replace_all() {-}
+#### str_replace() e str_replace_all() {-}
 
 Substituem um padrão (ou todos) encontrado para um outro padrão.
 
@@ -456,7 +482,7 @@ cpf <- c("303.030.111-33", "102-177-011-20", "987.220.199.00")
 str_replace_all(cpf, "[.-]", " ")
 ```
 
-##### str_extract() e str_extract_all() {-}
+#### str_extract() e str_extract_all() {-}
 
 As funções `str_extract()` e `str_extract_all()` extraem padrões de uma *string*. No exemplo abaixo, pegamos apenas os sobrenomes de cada integrante do grupo.
 
@@ -470,7 +496,7 @@ sobrenomes <- str_extract(r_core_group, '[:alpha:]+$')
 sobrenomes
 ```
 
-##### str_split() e str_split_fixed() {-}
+#### str_split() e str_split_fixed() {-}
 
 Essas funções separam uma *string* em várias de acordo com um separador.
 
@@ -486,7 +512,7 @@ O `str_split_fixed` faz o mesmo que `str_split()`, mas separa apenas `n` vezes.
 str_split_fixed(texto, fixed('.'), 3)
 ```
 
-##### str_subset() {-}
+#### str_subset() {-}
 
 A função `str_subset()` retorna somente as strings compatíveis com a regex.
 
@@ -501,7 +527,7 @@ str_subset(frases, 'd[eo]')
 frases[str_detect(frases, "d[eo]")]
 ```
 
-### Exercícios
+## Exercícios
 
 **1.** O CPF é um número de 11 dígitos, por exemplo: 54491651884. No entanto para facilitar a visualização costumamos mostrá-lo com separadores a cada 3 casas: 544.916.518-84. Crie uma função que transforma um número de 11 dígitos em uma string com as separações, como um CPF.
 
