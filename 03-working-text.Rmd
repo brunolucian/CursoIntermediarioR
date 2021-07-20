@@ -1,0 +1,532 @@
+# Trabalhando com textos
+
+## Exemplos reprodutiveis 
+
+### Reprex (Pedindo ajuda do jeito certo)
+
+#### O que é o `reprex`?
+
+O `reprex` é o apelido "exemplo reprodutível", inglês.
+
+A ideia do pacote e da função `reprex` é rodar o código em um ambiente "novo" 
+e "limpo", assim como ocorrerá com quem tentar reproduzir seu exemplo/problema.
+
+Desta forma, a simples produção de um `reprex` já é ela mesma a garantia 
+de que o exemplo em questão é reprodutível.
+
+#### Como usar?
+
+1. Ctrl + c
+
+Há várias formas para usar o `reprex`. Uma das que mais gosto é copiar o código 
+e rodar `reprex::reprex()`. Quando o `reprex` é usado sem argumentos ele 
+verifica se há algum código no seu "crtl + c" e, havendo, ele usa para criar 
+o exemplo reprodutível.
+
+Infelizmente esta alternativa não é tão reprodutível assim e não consigo 
+criar um reprex desta forma de usar o `reprex()`.
+
+2. Dentro de chaves {}
+Outra alternativa é colocar o código que será rodado como primeiro argumento do 
+`reprex()` envolto em chaves ({}). Realizando seu exemplo e rodando
+
+```{r, message=FALSE}
+library(reprex)
+
+reprex({
+  (y <- 1:4)
+  mean(y)
+}, style = TRUE)
+```
+
+
+Teríamos o pedaço a cima como resultado.
+
+
+```{r}
+(y <- 1:4)
+#> [1] 1 2 3 4
+mean(y)
+#> [1] 2.5
+```
+
+<sup>Created on 2021-07-20 by the [reprex package](https://reprex.tidyverse.org) (v2.0.0)</sup>
+
+
+#### Para que se dar ao trabalho?
+
+A vantagem de usar o `reprex()` é que ele evidencia prontamente erros que fariam 
+com que quem for te ajudar com o problema desista de tentar. Um bom exemplo é 
+aquele em que se esquece de compartilhar os dados usados para reproduzir o problema.
+
+Neste exemplo você poderia compartilhar apenas o pedaço de código
+
+```{r, eval=FALSE}
+
+mean(meus_dados$y)
+
+```
+
+E ainda que isso funcione para você não vai funcionar para mais ninguém. 
+Isso acontece porque esse código depende do ambiente em que ele foi rodado e 
+ninguém mais tem acesso a esse ambiente.
+
+Se você colocar apenas essa mesma linha dentro do `reprex`,
+
+```{r}
+reprex({mean(meus_dados$y)})
+```
+```{r, eval=FALSE}
+mean(meus_dados$y)
+#> Error in mean(meus_dados$y): objeto 'meus_dados' não encontrado
+```
+
+<sup>Created on 2021-07-20 by the [reprex package](https://reprex.tidyverse.org) (v2.0.0)</sup>
+
+
+Com isso você já saberá de antemão que deve readequar seu código para que o 
+exemplo contenha todos os elementos que permitam que ele seja reproduzido 
+em um outro contexto ou ambiente.
+
+Se você está pedindo ajuda em R, relatando um bug ou solicitando uma nova 
+feature, você terá mais chances de sucesso se incluir um bom `reprex`
+
+:::: {.blackbox data-latex=""}
+::: {.center data-latex=""}
+**DICA!**
+:::
+Para conseguir ser efetivo tome seu tempo e valorize o tempo da pessoa que 
+você está pedindo ajuda. Criando um bom exemplo reprodutivel da sua dúvida. 
+::::
+
+- Se você está pedindo ajuda em R, relatando um bug ou solicitando uma nova 
+feature, você terá mais chances de sucesso se incluir um bom "reprex"
+
+- Se qualquer parte do seu código é aleatório não esqueça de usar `set.seed()`
+para manter seu código reprodutivel. 
+
+- Considere incluir as chamadas "session info", ou seja, seu sistema operacional 
+e versões de R e pacotes complementares, se for concebível que isso importe.
+
+- Use `reprex (..., session_info = TRUE)` para isso.
+
+:::: {.blackbox data-latex=""}
+::: {.center data-latex=""}
+**Não Faça!**
+:::
+Itens que devemos evitar para que o reprex seja um sucesso e consigamos resolver
+nossas dúvidas!
+::::
+
+- Não comece com `rm(list = ls ())`. Não é legal destruir os espaços de trabalho 
+de outras pessoas.
+
+- Não comece com `setwd("C:\Users\Bobao\caminho\que\existe\apenas\na\minha\maquina")`, 
+porque não vai funcionar em outro computador.
+
+- Não sobreponha funções básicas, ou seja, não defina uma nova função chamada 
+`c` ou `mean`.
+
+- Se você alterar as opções, armazene os valores originais no início, 
+faça o que precisa e, em seguida, restaure-os.
+
+- Se você criar arquivos, exclua-os quando terminar.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, fig.align = "center")
+library(glue)
+library(tidyverse)
+```
+
+## Introdução ao stringr {#stringr}
+
+Variáveis de texto são muito comuns em bancos de dados e geralmente requerem muito trabalho para operar. É muito comum encontrar colunas com categorias não padronizadas, como as variáveis `Estado` com "RJ","rj","Rio de Janeiro","Rio De Janeiro", etc., todas representando o mesmo estado.
+
+O R possui várias funções para manipular textos (ou *strings*). No entanto, as funções do `base` não possuem uma interface consistente e cada uma tem a sua forma de passar os parâmetros, dificultando a programação durante a análise.
+
+Com isso em mente, Hadley Wickham forneceu esse poder para a comunidade R e criou o pacote `stringr`, que tem uma sintaxe consistente que permite aos usuários manipular o texto com mais facilidade.
+
+### Vantagens do stringr em relação às funções do R base {-}
+
+- A gramática unificada ajuda a memorizar funções e ler códigos.
+
+- Todas as funções são vetorizadas.
+
+- Construído sobre a [biblioteca ICU](http://site.icu-project.org/), implementada em `C` e `C++`, uma garantia de melhor performace.
+
+### Regras básicas do pacote {-}
+
+- As funções de manipulação de texto começam com `str_`. Se você esquecer o nome da função, apenas digite `stringr :: str_` e clique em` TAB` para ver quais são as opções.
+
+- O primeiro argumento da função é sempre uma *string* ou um vetor de *strings*.
+
+
+### Começando a usar {-}
+
+Todas as funções `stringr` começam com o prefixo` str_`. Isso ajuda você a encontrar os recursos de que precisa. No RStudio, digite `str_` e pressione ** TAB ** para ver uma lista de funções com esse prefixo. Você pode verificar a usabilidade de cada função até encontrar aquela que se adapta às suas necessidades.
+
+```{r, echo=FALSE}
+knitr::include_graphics("fig/img_str.png")
+```
+
+Na próxima seção, vamos apresentar as funções mais simples do `{stringr}`. Em seguida, vamos falar um pouco de expressões regulares (regex) e então veremos funções mais avançadas do pacote, que utilizam regex para identificar padrões.
+
+
+## Funções básicas
+
+A seguir, apresentamos as funções mais simples do `{stringr}`, que não utilizam o conceito de expressões regulares. 
+
+### str_length {-}
+
+A função mais simples do `stringr()` é a função `str_length()`. Esta função recebe como argumento um vetor de *strings* e retorna o número de caracteres de cada *string*. Repare que o espaço `" "` é considerado um caracter.
+
+```{r}
+str_length("São Paulo")
+str_length(c("São Paulo", "Rio de Janeiro", 
+             "Rio Grande do Norte", "Acre"))
+```
+
+Note que `str_length()` é diferente de `length()`. O primeiro retorna o número de caracteres e o segundo retorna o comprimento do objeto. Isso fica mais claro no seguinte exemplo:
+
+```{r}
+estados <- c("São Paulo", "Rio de Janeiro", 
+       "Rio Grande do Norte", "Acre")
+str_length(estados)
+length(estados)
+```
+
+A função `str_length()` retornou um vetor com o número de caracteres de cada elemento do vetor `s`, enquanto `length()` retornou o comprimento do vetor `s`.
+
+##### str_to_upper, str_to_lower, str_to_title {-}
+
+Essas funções servem para modificar a caixa das letras. Veja alguns exemplos:
+
+```{r}
+s <- "Hoje é um lindo dia, para SALVAR Vidas!"
+str_to_lower(s)
+str_to_upper(s)
+str_to_title(s)
+```
+
+##### str_trim {-}
+
+É muito comum encontrar textos que vêm com espaços a mais, principalmente de dados
+provenientes de formulários em que cada usuário escreve da forma que prefere. 
+Isso é um problema pois cria categorias diferentes para valores que deveriam ser iguais. 
+Espaços antes e após o texto são especialmente chatos, pois pode ser difícil detectá-los.
+
+```{r}
+espacados <- c("M", "F", "F", " M", " F ", "M")
+as.factor(espacados)
+```
+
+A função `str_trim()` ajuda removendo os espaços excedentes antes e depois da string.
+
+```{r}
+string_aparada <- str_trim(espacados)
+as.factor(string_aparada)
+```
+
+##### str_sub {-}
+
+Não é raro você precisar obter uma parte fixa de uma *string*, como, por exemplo, manipular textos da forma:
+
+```{r}
+vetor_sujo <- c("01-Feminino", "02-Masculino", "03-Indefinido")
+```
+
+Você pode querer apenas a parte final da string. Neste caso, pode usar a função `str_sub()`.
+
+```{r}
+
+str_sub(vetor_sujo, start = 4) 
+
+```
+
+Também é possível obter apenas os números.
+
+```{r}
+
+str_sub(vetor_sujo, end = 2) 
+
+```
+
+Em outros casos você precisa obter os últimos 2 caracteres.
+
+```{r}
+vetor_sujo_inv <- c("Feminino-01", "Masculino-02", "Indefinido-03")
+str_sub(vetor_sujo_inv, end = -4)
+str_sub(vetor_sujo_inv, start = -2)
+```
+
+É possível usar os argumentos `start` e `end` conjuntamente.
+
+```{r}
+uf_no_texto <- c("__SP__", "__MG__", "__RJ__")
+str_sub(uf_no_texto, 3, 4)
+```
+
+##### str_c {-}
+
+Análoga à função `paste0()` do R base, concatena *strings* em uma única string.
+
+```{r}
+string1 <- "O valor p é: "
+string2 <- 0.03
+str_c(string1, string2) 
+```
+
+Pode misturar objetos com strings definidas diretamente na função.
+
+```{r}
+string1 <- "modo"
+string2 <- "pouco"
+string3 <- "amar"
+str_c("Cada qual sabe amar a seu", string1,"; o ",string1, string2," importa; o essencial é que saiba", string3, ".")
+```
+Podemos também utilizar a mesma função com o parametro `sep` para colocar um espaçamento entre os itens do vetor.
+
+```{r}
+str_c("Cada qual sabe amar a seu", string1,"; o ",string1, string2," importa; o essencial é que saiba", string3, ".",sep = " ")
+```
+A função é vetorizada.
+
+```{r}
+string1 <- c("R", "SPSS")
+string2 <- c("bom", "ruim")
+string3 <- c("melhor", "pior")
+str_c(string1, " é a prova de que não existe nada tão ", string2,
+      " que não pode ficar ", string3, ".")
+```
+
+Essas são as funções mais simples do pacote `stringr` e não exigem nenhum 
+conhecimento de **expressões regulares**. Note que nenhuma delas possui o 
+parâmetro `pattern`. Você verá como especificar esse parâmetro nas próximas seções. 
+
+### Expressões Regulares
+
+Trabalhar com textos exige um certo conhecimento de [expressões regulares](https://pt.wikipedia.org/wiki/Express%C3%A3o_regular). 
+As expressões regulares --- ou simplesmente **regex** --- permitem identificar 
+conjuntos de caracteres, palavras e outros padrões por meio de uma sintaxe concisa. 
+
+O `stringr` utiliza regex da forma descrita [neste documento](http://www.gagolewski.com/software/stringi/manual/?manpage=stringi-search-regex). 
+A própria [definição](https://stat.ethz.ch/R-manual/R-devel/library/base/html/regex.html) 
+de regex do R é um ótimo manual.
+
+Vamos estudar expressões regulares por meio de exemplos e da função 
+`str_detect()`. Ela retorna `TRUE` se uma *string* atende a uma expressão regular
+e `FALSE` caso contrário. Por exemplo:
+
+```{r}
+str_detect("sao paulo", pattern = "paulo$")
+str_detect("sao paulo sp", pattern = "paulo$")
+```
+
+A **regex**/`pattern` "paulo\$" indica que o texto deve ser terminado em "paulo". 
+Existem diversos caracteres auxiliares que vão auxiliar na manipulação dos textos, 
+assim como o "\$". 
+
+:::: {.blackbox data-latex=""}
+::: {.center data-latex=""}
+**Importante!**
+:::
+o valor passado para o argumento `pattern` de qualquer função do pacote `stringr` 
+será entendido como uma **regex**.
+::::
+
+
+A tabela abaixo mostra a aplicação de cinco regex em seis *strings* distintas.
+
+- '^ban' reconhece apenas o que começa exatamente com "ban".
+
+- 'b ?an' reconhece tudo que tenha "ban", com ou sem espaço entre o "b" e o "a".
+
+- 'ban' reconhece tudo que tenha "ban", apenas minúsculo.
+
+- BAN' reconhece tudo que tenha "BAN", apenas maiúsculo.
+
+- 'ban$' reconhece apenas o que termina exatamente em "ban"
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+s <- c('ban', 'banana', 'abandonado', 'pranab anderson', 'BANANA', 
+            'ele levou ban')
+expressoes <- list(
+  'ban', # reconhece tudo que tenha "ban", mas não ignora case
+  'BAN', # reconhece tudo que tenha "BAN", mas não ignora case
+  'ban$', # reconhece apenas o que termina exatamente em "ban"
+  '^ban', # reconhece apenas o que começa exatamente com "ban"
+  'b ?an' # reconhece tudo que tenha "ban", com ou sem espaço entre o "b" e o "a"
+)
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+list(strings = s, expressoes = expressoes) %>%
+  cross_d() %>%
+  distinct() %>%
+  mutate(detect = str_detect(s, expressoes)) %>%
+  spread(expressoes, detect) %>%
+  knitr::kable()
+```
+
+##### Quantificadores {-}
+
+Os caracteres `+`, `*` e `{x,y}` indicam quantas vezes um padrão se repete:
+
+- `ey+` significa `e` e depois `y` "**uma vez** ou mais". Por exemplo, reconhece `hey`, `heyy`, `a eyyy`, mas não reconhece `e`, `y` nem `yy`.
+
+- `ey*` significa "**nenhuma vez** ou mais". Por exemplo, reconhece `hey`, `heyy`, `a eyyy` e `e`, mas não reconhece `y` nem `yy`.
+
+- `ey{3}` significa "exatamente três vezes". Por exemplo, reconhece `eyyy` e `eyyyy`, mas não reconhece `eyy`.
+- `ey{1,3}` significa "entre uma e três vezes".
+
+Para aplicar um quantificador a um conjunto de caracteres, use parênteses. Por exemplo, `(ey )+` reconhece `ey ey `.
+
+##### Conjuntos {-}
+
+Colocando caracteres dentro de `[]`, reconhecemos quaisquer caracteres desse conjunto. Alguns exemplos práticos:
+
+- `[Cc]asa` para reconhecer "casa" em maiúsculo ou minúsculo.
+
+- `[0-9]` para reconhecer somente números. O mesmo vale para letras `[a-z]`, `[A-Z]`, `[a-zA-Z]` etc.
+
+- O símbolo `^` dentro do colchete significa negação. Por exemplo, `[^0-9]` significa pegar tudo o que não é número.
+
+- O símbolo `.` fora do colchete indica "qualquer caractere", mas dentro do colchete é apenas ponto.
+
+- Use `[[:space:]]+` para reconhecer espaços e `[[:punct:]]+` para reconhecer pontuações.
+
+##### Miscelânea {-}
+
+- Use `|` para opções. Por exemplo, `desfavor|desprov` reconhece tanto "desfavorável" quanto "desprovido".
+
+- O código `\n` pula linha, `\f` é final da página, `\t` é tab. Use `\` para transformar caracteres especiais em literais.
+
+A lista de possibilidades com expressões regulares é extensa. 
+Um bom lugar para testar o funcionamento das regex é o [regex101](https://regex101.com/).
+
+### Funções que utilizam regex
+
+Agora que já vimos as funções básicas do `stringr` e aprendemos um pouco de regex, vamos às funções mais avançadas. Basicamente, essas funções buscarão `patterns` em um vetor de *strings* e farão alguma coisa quando encontrá-lo.
+
+Como já vimos na sessão sobre regex, a função mais simples que possui o argumento `pattern=` é a `str_detect()`.
+
+##### str_detect()  {-}
+
+Retorna `TRUE` se a regex é compatível com a string e `FALSE` caso contrário.
+
+```{r}
+library(stringr)
+str_detect("sao paulo", pattern = "paulo$")
+str_detect("sao paulo sp", pattern = "paulo$")
+```
+
+##### str_replace() e str_replace_all() {-}
+
+Substituem um padrão (ou todos) encontrado para um outro padrão.
+
+Substituindo apenas a primeira ocorrência.
+
+```{r}
+cidades <- c("S. José do Rio Preto", "São Paulo", "S. José dos Campos", "São Roque", "S. S. da Grama")
+str_replace(cidades, "S[.]", "São")
+```
+Veja que no exemplo anterior precisamos colocar o `.` entre colchetes. Se não tivéssemos colocado, ele seria interpretado como uma regex e o padrão procurado seria *"S" seguido de qualquer caracter*:
+
+```{r}
+cidades <- c("S. José do Rio Preto", "São Paulo", "S. José dos Campos", "São Roque", "S. S. da Grama")
+str_replace(cidades, "S.", "São")
+```
+
+Nesses casos, podemos usar a função `fixed()` para indicar que o padrão procurado não é uma regex:
+
+```{r}
+cidades <- c("S. José do Rio Preto", "São Paulo", "S. José dos Campos", "São Roque", "S. S. da Grama")
+str_replace(cidades, fixed("S."), "São")
+```
+
+A função `str_replace()` substitui apenas a primeira ocorrência encontrada. No exemplo anterior, apenas o primeiro "S." era substituído por "São". Se quisermos substituir todas as ocorrências de um padrão dentro de uma string, utilizamos a função `str_replace_all()`.
+
+No exemplo abaixo, substituímos todas as ocorrências de `.` e `-` por um espaço.
+
+```{r}
+cpf <- c("303.030.111-33", "102-177-011-20", "987.220.199.00")
+str_replace_all(cpf, "[.-]", " ")
+```
+
+##### str_extract() e str_extract_all() {-}
+
+As funções `str_extract()` e `str_extract_all()` extraem padrões de uma *string*. No exemplo abaixo, pegamos apenas os sobrenomes de cada integrante do grupo.
+
+```{r}
+r_core_group <- c(
+  'Douglas Bates', 'John Chambers', 'Peter Dalgaard',
+  'Robert Gentleman', 'Kurt Hornik', 'Ross Ihaka', 'Tomas Kalibera',
+  'Michael Lawrence', 'Friedrich Leisch', 'Uwe Ligges', '...'
+)
+sobrenomes <- str_extract(r_core_group, '[:alpha:]+$')
+sobrenomes
+```
+
+##### str_split() e str_split_fixed() {-}
+
+Essas funções separam uma *string* em várias de acordo com um separador.
+
+```{r}
+texto <- 'Somos autores e protagonistas da nossa própria história, cada página é cada dia, os amores são os momentos e oportunidades são os capítulos... Façamos que essa nossa história se torne um bom livro de vida. Que cada momento seja bem aproveitado, é muito mais prazeroso o ato do fazer acontecer do que a frustração do não tentar. Que os olhares sejam lançados e trocados, que sorrisos sejam esbanjados e eternizados em nossas faces. Não há nada
+melhor que o abraço de uma saudade, ombro de um amigo e o gosto de um gostar... Amigos são a família que Deus nos permitiu escolher, que façamos nossas escolhas e na companhia deles possamos desfrutar, aproveitar, compartilhar e manter aquele sentimento tão bom o qual deram o nome de AMIZADE. Que a gente aprenda a rir de nós mesmos, que possamos dar altas gargalhadas, que gritemos nossos medos, saibamos cantar nossas saudades e dançar rodopiando nossas alegrias... Que possamos dar asas a nossa imaginação e espaço a nossas mais puras lembranças, pois estas, as quais nos acompanham, nos engrandecem de alguma forma e nos fazem perceber que a vida é muito. Que percebamos o mais simples entre os mais exuberantes, a mais simples criação, o mais simples gesto, o mais simples ato... Que a gente aprenda a perdoar e acima de tudo que possamos viver sabendo AMAR! Os amores vem e vão, nem tudo é tão certo, nem tudo é pra sempre... E há quem diga,assim como o poeta, que mesmo aquele amor que não compensa é melhor que a solidão. E quando a tristeza bater, a dúvida insistir e a saudade apertar, devemos lembrar que somos apenas humanos sujeitos à erros e falhas, mas com capacidade de superação e aprendizagem. Que nossas histórias sejam bem escritas e que nunca deixemos de viver por medo de errar. Tudo passa tão rápido e o tudo e imensuravelmente importante. O tempo não retroage. Que aproveitemos cada momento e o que dele vier, cada minuto, cada pessoa, cada palavra, cada abraço, cada beijo. Que contemos nossa idade, não por anos que foram completados, mas por momentos únicos e bem vividos... toda idade tem seu prazer e seu medo! Por fim, que num futuro distante, ao olhar pra traz e ao ler toda a nossa história, possamos simplesmente dizer: que se problemas tivemos,dificuldade passamos e tristeza sentimos, não foi por falta do tal sentimento, o qual deram o nome de felicidade. Isso é um pouquinho do viver.'
+str_split(texto, fixed('.'))
+```
+
+O `str_split_fixed` faz o mesmo que `str_split()`, mas separa apenas `n` vezes.
+
+```{r}
+str_split_fixed(texto, fixed('.'), 3)
+```
+
+##### str_subset() {-}
+
+A função `str_subset()` retorna somente as strings compatíveis com a regex.
+
+```{r}
+frases <- c('a roupa do rei', 'de roma', 'o rato roeu')
+str_subset(frases, 'd[eo]')
+```
+
+É o mesmo que fazer subset usando a função `str_detect`.
+
+```{r}
+frases[str_detect(frases, "d[eo]")]
+```
+
+### Exercícios
+
+**1.** O CPF é um número de 11 dígitos, por exemplo: 54491651884. No entanto para facilitar a visualização costumamos mostrá-lo com separadores a cada 3 casas: 544.916.518-84. Crie uma função que transforma um número de 11 dígitos em uma string com as separações, como um CPF.
+
+**2.** Transforme o vetor de *strings* abaixo em `"01 - Alto" "02 - Médio" "03 - Baixo"`.
+
+```{r ex="exercicio_02", type="sample-code"}
+input <- c("01 - Alto", "02 - Médio", "03 - Baixo")
+result <- c('Alto', 'Médio', 'Baixo')
+```
+
+**3.** Crie uma regex que capture múltiplas versões da palavra 'casa'. Ela deve funcionar com as palavras 'Casa', 'CASA', 'CaSa', 'CAsa'. Teste-a usando a função `str_detect()`.
+
+```{r ex="exercicio_03", type="sample-code"}
+input <- c('Casa', 'CASA', 'CaSa', 'CAsa')
+```
+
+**4.** Imagine que a seguinte *string* é a parte final de uma URL.
+
+* `/rj/sao-goncalo/xpto-xyz-1-0-1fds2396-5`
+
+Transforme-a em "RJ - Sao Goncalo" utilizando funções do pacote `{stringr}`.
+
+```{r ex="exercicio_04", type="sample-code"}
+url <- c('/rj/sao-goncalo/xpto-xyz-1-0-1fds2396-5')
+```
+
+**5.** Crie uma função que retorna `TRUE` quando a string é um [palíndromo](https://pt.wikipedia.org/wiki/Pal%C3%ADndromo) e `FALSO` caso não seja.
+
