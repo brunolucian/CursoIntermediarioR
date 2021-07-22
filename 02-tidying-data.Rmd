@@ -1,287 +1,354 @@
 # O pacote tidyr {#tidyr}
 
-Dentro do `tidyverse`, uma base *tidy* é uma base fácil de se trabalhar, isto é, fácil de se fazer manipulação de dados, fácil de se criar visualizações, fácil de se ajustar modelos e por aí vai.
+Script da aula do Módulo II abaixo.
+```{r, echo=FALSE}
+xfun::embed_file('Scripts/02-tidying-data.R')
+```
 
-Na prática, uma base *tidy* é aquela que se encaixa bem no *framework* do `tidyverse`, pois os pacotes como o `dplyr` e o `ggplot2` foram desenvolvidos para funcionar bem com bases *tidy*. E assim como esses pacotes motivaram o uso de bases *tidy*, o conceito *tidy* motiva o surgimento de novos *frameworks*, como o `tidymodels` para modelagem.
+## Conceito tidy
 
-As duas propriedades mais importantes de uma base *tidy* são:
+Dentro do `tidyverse`, um dataset *tidy* é uma base fácil de se trabalhar, isto é, fácil de se fazer manipulação de dados, criar visualizações e de se ajustar modelos. 
 
-- cada coluna é uma variável;
+Na prática, uma base *tidy* é aquela que se encaixa bem no *framework* do `tidyverse`, pois os pacotes como o `dplyr` e o `ggplot2` foram desenvolvidos para funcionar bem com *bases tidy*(**Dados organizados**). 
 
-- cada linha é uma observação.
+**Dados organizados** são uma forma padrão de mapear o significado de um conjunto de dados em sua estrutura. 
+Um conjunto de dados é *confuso* ou *organizado*, dependendo de como as linhas, 
+colunas e tabelas são combinadas com observações, variáveis e tipos. Em dados organizados:
 
-Essa definição proporciona uma maneira consistente de se referir a variáveis (nomes de colunas) e observações (índices das linhas).
+- Cada coluna é uma variável.
 
-O pacote `{tidyr}` possui funções que nos ajudam a deixar uma base bagunçada em uma base *tidy*. Ou então, nos ajudam a bagunçar um pouquinho a nossa base quando isso nos ajudar a produzir o resultados que queremos.
+- Cada linha é uma observação.
+
+- Cada célula é um único valor.
+
+![Tidy concept](fig/tidy_data_01.png)
+
+
+Esta é a 3ª forma normal de *Codd*, mas com as restrições enquadradas 
+em linguagem estatística e o foco colocado em um único conjunto de dados, 
+em vez dos muitos conjuntos de dados conectados comuns 
+em bancos de dados relacionais. 
+Dados bagunçados são qualquer outro arranjo dos dados.
+
+Os *dados organizados* tornam mais fácil para um analista ou um computador 
+extrair as variáveis necessárias porque fornecem uma maneira 
+padrão de estruturar um conjunto de dados. 
+Compare as diferentes versões dos dados da sala de aula: 
+na versão confusa, você precisa usar estratégias diferentes para extrair 
+variáveis diferentes. Isso retarda a análise e convida a erros. 
+Se você considerar quantas operações de análise de dados envolvem todos os valores 
+em uma variável (cada função de agregação), você pode ver como é importante extrair 
+esses valores de uma maneira simples e padrão. 
+*Dados organizados* são particularmente adequados para linguagens de programação 
+vetorizadas como R, porque o layout garante que os valores de diferentes variáveis
+da mesma observação estejam sempre emparelhados.
+
+Embora a ordem das variáveis e observações não afete a análise, uma boa ordem 
+torna mais fácil verificar os valores brutos. Uma maneira de organizar as 
+variáveis é por meio de seu papel na análise: os valores são fixados pelo 
+projeto da coleta de dados ou são medidos durante o curso do experimento? 
+Variáveis fixas descrevem o projeto experimental e são conhecidas com antecedência.
+Os cientistas da computação costumam chamar dimensões de variáveis fixas, e os 
+estatísticos geralmente as denotam com índices em variáveis aleatórias. 
+As variáveis medidas são o que realmente medimos no estudo. As variáveis fixas 
+devem vir primeiro, seguidas pelas variáveis medidas, cada uma ordenada de forma
+que as variáveis relacionadas sejam contíguas. 
+As linhas podem então ser ordenadas pela primeira variável, quebrando os laços 
+com a segunda variável e as subsequentes (fixas). 
+
+Isto nos proporciona uma maneira consistente de se referir às variáveis e observações.
+
+O pacote `{tidyr}` possui funções que nos ajudam a transformar uma base **confusa** em uma base *organizada* (bem formatada). Ou então, nos ajudam a retirar do formato *tidy* quando isso nos convém.
 
 Vamos ver aqui algumas de suas principais funções:
 
-- `separate()` e `unite()`: para separar variáveis concatenadas em uma única coluna ou uni-las.
-
 - `pivot_wider()` e `pivot_longer()`: para pivotar a base.
+
+- `separate()` e `unite()`: para separar variáveis concatenadas em uma única coluna ou uni-las.
 
 - `nest()` e `unnest()`: para criar *list columns*.
 
 Como motivação para utilizar esssas funções.
 
 ```{r, include = FALSE}
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-imdb <- readr::read_rds("Dados/imdb.rds")
+library(tidyverse)
+
 ```
 
-```{r, eval = FALSE}
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-imdb <- readr::read_rds("imdb.rds")
-```
+## Pivotagem
 
-### `separate()` e `unite()`
+O princípio de pivotagem no *tidyverse* se refere a mudança da estrutura da base, normalmente para alcançar o formato *tidy*. 
 
-A função `separate()` separa duas ou mais variáveis que estão concatenadas em uma mesma coluna. A sintaxe da função está apresentada abaixo.
+Os princípios de *dados organizados* parecem tão óbvios que você pode se perguntar se algum dia encontrará um conjunto de dados que não seja organizado. Infelizmente, porém, a maioria dos dados que você encontrará estarão desordenados. Há duas razões principais:
 
-```{r eval=FALSE}
-dados %>% 
-  separate( 
-    col = coluna_velha, 
-    into = c("colunas", "novas"),
-    sep = "separador"
-  )
-```
+- A maioria das pessoas não está familiarizada com os princípios de dados organizados e é difícil derivá-los sozinho, a menos que você passe muito tempo trabalhando com dados.
 
-Como exemplo, vamos transformar a coluna `generos` da base IMDB em três colunas, cada uma com um dos gêneros do filme. Lembrando que os valores da coluna `generos` estão no seguinte formato:
+- Os dados são frequentemente organizados para facilitar algum uso além da análise. Por exemplo, os dados são frequentemente organizados para tornar a entrada o mais fácil possível.
 
-```{r}
-imdb %>% pull(generos) %>% head()
-```
+Isso significa que, para a maioria das análises reais, você precisará fazer algumas arrumações. O primeiro passo é sempre descobrir quais são as variáveis e observações. Às vezes, isso é fácil, outras vezes, você precisará consultar as pessoas que detém o conhecimento do negócio relacionado aos dados que se está trabalhando. A segunda etapa é resolver um dos dois problemas comuns: 
 
-Veja que agora, temos 3 colunas de gênero. Filmes com menos de 3 gêneros recebem `NA` na coluna `genero2` e/ou `genero3`. Os gêneros sobressalentes são descartados, assim como a coluna `generos` original.
+- Uma variável pode ser espalhada por várias colunas.
 
-```{r}
-imdb %>% 
-  separate( 
-    col = generos,
-    into = c("genero1", "genero2", "genero3"), 
-    sep = "\\|"
-  )
-```
+- Uma observação pode estar espalhada por várias linhas.
 
-A função `unite()` realiza a operação inversa da função `separate()`. Ela concatena os valores de várias variáveis em uma única coluna. A sintaxe é a seguinte:
-
-```{r eval=FALSE, echo=TRUE}
-dados %>% 
-  unite(
-    col = coluna_nova, 
-    colunas_para_juntar, 
-    sep = "separador" 
-  )
-```
-
-Como exemplo, vamos agora transformar as colunas `ator1`, `ator2` e `ator3` em uma única coluna `atores`. Lembrando que essas colunas estão no formato abaixo.
-
-```{r}
-imdb %>% select(starts_with("ator")) %>% head(3)
-```
-
-Veja que agora a coluna `atores` possui os 3 atores concatenados. Se a ordem das colunas `ator1`, `ator2` e `ator3` nos trazia a informação de protagonismo, essa informação passa a ficar implícita nesse novo formato. As 3 colunas originais são removidas da base resultante.
-
-```{r}
-imdb %>% 
-  unite(
-    col = "elenco",
-    starts_with("ator"), 
-    sep = " - "
-  ) %>% 
-  select(elenco)
-```
-
-### Pivotagem
-
-O conceito de pivotagem no *tidyverse* se refere a mudança da estrutura da base, geralmente para alcançar o formato *tidy*. 
-
-Geralmente realizamos pivotagem quando nossas linhas não são unidades observacionais ou nossas colunas não são variáveis. Ela é similiar à pivotagem do Excel, mas um pouco mais complexa.
+Geralmente, a base de dados sofrerá apenas de um desses problemas. Só vai sofrer de ambos se você for realmente azarado! Para corrigir esses problemas, você precisará das duas funções mais importantes no *tidyr*: `pivot_longer()` e `pivot_wider()`.
 
 O ato de pivotar resulta em transformar uma base de dados *long* em *wide* e vice-versa. 
 
-Uma base no formato *long* possui mais linhas e pode ter menos colunas, enquanto no formato *wide* poussi menos linhas e pode ter mais colunas
-
 Esses formatos são sempre relativos às colunas que estão sendo pivotadas, sendo que uma base *tidy* pode estar tanto no formato *long* quanto *wide*.
 
-Antigamente, utilizávamos as funções `gather()` e `spread()` para fazer as operações de pivotagem. 
+Antigamente, utilizávamos as funções `gather()` e `spread()` para fazer as operações de pivotagem.
 
-Agora, no lugar de `gather()`, utilizamos a função `pivot_longer()`. Abaixo, transformamos as colunas `ator1`, `ator2` e `ator3` em duas colunas: `ator_atriz` e `protagonismo`.
+### Long data
+
+Agora, no lugar de `gather()`, utilizamos a função `pivot_longer()`. 
+
+Um problema comum é que alguns dos nomes das colunas não são nomes de variáveis, mas sim valores de uma variável. Tome a `tabela4b`: os nomes das colunas 1999 e 2000 representam os valores da variável ano, os valores nas colunas 1999 e 2000 representam os valores da variável de população e cada linha representa mais de uma observação.
 
 ```{r}
-imdb %>% 
+
+table4b
+
+```
+
+Para conseguir representar esse *dataset* dentro do conceito *tidy*, precisamos transformar as colunas "problemáticas" em um novo par de variáveis. Para descrever esse processo, precisamos de três parâmetros:
+
+- O conjunto de colunas cujos nomes são valores, não variáveis. Neste exemplo, essas são as colunas 1999 e 2000.
+
+- O nome da variável para a qual mover os nomes das colunas. Aqui é ano.
+
+- O nome da variável para a qual mover os valores da coluna. Aqui estão os totais populacionais.
+
+```{r}
+
+table4b %>% 
+  pivot_longer(c(`1999`, `2000`), names_to = "ano", values_to = "populacao")
+
+```
+
+As colunas dinâmicas são eliminadas e obtemos novas colunas de `ano` e de `populacao`. Entretanto, as relações entre as variáveis originais são preservadas.
+
+Obs: Observe que “1999” e “2000” são nomes não sintáticos (porque eles não começam com uma letra), então temos que colocá-los entre **crases**. 
+
+`pivot_longer()` torna os `datasets` mais longos, **aumentando** o número de **linhas** e **diminuindo** o número de **colunas**. 
+
+### Wide data
+
+`pivot_wider()` é o oposto de `pivot_longer()`. Você o usa quando uma observação está espalhada por várias linhas. Como por exemplo a tabela 2: onde uma observação é um país em um ano, mas cada observação é distribuída por duas linhas.
+
+```{r}
+
+table2
+
+```
+
+Para arrumar isso, primeiro analisamos a representação de maneira semelhante a `pivot_longer()`. Desta vez, no entanto, precisamos apenas de dois parâmetros:
+
+- A coluna da qual obter os nomes das variáveis. Aqui, é tipo.
+
+- A coluna da qual obter valores. Aqui está a contagem.
+
+```{r}
+
+table2 %>%
+    pivot_wider(names_from = type, values_from = count)
+
+```
+
+Como você deve ter adivinhado por seus nomes, `pivot_wider()` e `pivot_longer()` são complementos. `pivot_longer()` torna as tabelas amplas em estreitas e mais longas. Já a função `pivot_wider()` torna as tabelas longas em curtas e amplas.
+
+
+## Separando e unindo 
+
+### Separando informações de uma mesma célula
+
+`separate()` é a função que separa uma coluna em várias colunas, dividindo onde quer que apareça um caractere separador.
+Para ilustrar vamos usar a `tabela3`:
+
+```{r}
+
+table3
+
+```
+
+A coluna `rate` contém casos e população de forma simultânea, e precisamos dividi-la em duas variáveis. Então vamos usar o comando `separate()` que pega o nome da coluna a ser separada e os nomes das colunas nas quais se quer separar, conforme mostrado código abaixo.
+
+```{r}
+table3 %>% 
+  separate(rate, into = c("Casos", "Populacao"))
+```
+
+Por padrão, `separate()` dividirá os valores sempre que vir um caractere *não alfanumérico* (ou seja, um caractere que não é um número ou letra). Por exemplo, no código acima, foi divido os valores da coluna `rate` no caractere de barra. Se você deseja usar um caractere específico para separar uma coluna, você pode passar o caractere para o argumento `sep` de `separate()`. Por exemplo, podemos reescrever o código acima como:
+
+```{r}
+
+table3 %>% 
+  separate(rate, into = c("Casos", "Populacao"), sep = "/")
+
+```
+
+(Na verdade, `sep` é uma *expressão regular*, sobre a qual você aprenderá mais em *strings*.)
+
+
+Se observarmos cuidadosamente os tipos das variáveis. Podemos notar que `Casos` e `Populacao` são colunas de caracteres. Este é o comportamento padrão em `separate()` deixa o tipo da coluna como está. Aqui, no entanto, não é muito útil, pois esses são realmente números. Podemos pedir a `separate()` para tentar converter para tipos melhores usando `convert = TRUE`.
+
+```{r}
+
+table3 %>% 
+  separate(rate, into = c("Casos", "Populacao"), convert = TRUE)
+
+```
+
+Você também pode passar um vetor de inteiros para `sep`. `separate()` vai interpretar os inteiros como posições nas quais dividir a informação. 
+- Os valores positivos começam em 1 na extremidade esquerda das strings. 
+- O valor negativo começa em -1 na extrema direita das strings. 
+Ao usar inteiros para separar strings, o comprimento de `sep` deve ser um a menos que o número de nomes.
+
+Você pode usar esse arranjo para separar os dois últimos dígitos de cada ano. Isso torna esses dados menos organizados, mas pode ser bem útil.
+
+```{r}
+table_separate <- table3 %>%
+  separate(rate, 
+           into = c("Casos", "Populacao"), convert = TRUE) %>% 
+  separate(year, into = c("Seculo", "Ano"), sep = 2)
+
+table_separate
+
+```
+
+### Unindo informações em uma unica celula
+
+
+`unite()` é o inverso de `separate()`: ele combina várias colunas em uma única coluna. è provavel que você irá precisar dele com muito menos frequência do que `separate()`, mas ainda é uma ferramenta útil para se ter.
+
+Podemos usar `unite()` para reunir novamente as colunas de `seculo` e `ano` que criamos no último exemplo. A função `unite()` pega um conjunto de dados, o nome da nova variável a ser criada e um conjunto de colunas a serem combinadas.
+
+```{r}
+table_separate %>% 
+  unite(Ano_Cheio, Seculo, Ano)
+```
+
+Nesse caso, também precisamos usar o argumento `sep`. O padrão colocará um *underscore* (_) entre os valores de diferentes colunas. Neste caso não queremos nenhum separador, então usamos "" como nosso separador.
+
+```{r}
+table_separate %>% 
+  unite(Ano_Cheio, Seculo, Ano, sep = "")
+```
+
+## Dados faltantes
+
+Alterar a representação de um conjunto de dados traz à tona uma importante sutileza de valores ausentes. Surpreendentemente, um valor pode estar faltando em uma das duas maneiras possíveis:
+
+- **Explicitamente**, ou seja, sinalizado com NA.
+- **Implicitamente**, ou seja, simplesmente não está presente nos dados.
+
+Vamos ilustrar essa ideia com um conjunto de dados muito simples:
+
+```{r}
+stocks <- tibble(
+  Anos   = c(2015, 2015, 2015, 2015, 2016, 2016, 2016),
+  Tri    = c(   1,    2,    3,    4,    2,    3,    4),
+  Retornos = c(1.88, 0.59, 0.35,   NA, 0.92, 0.17, 2.66)
+)
+```
+
+Existem dois valores ausentes neste conjunto de dados:
+
+O retorno para o quarto trimestre de 2015 está explicitamente ausente, porque a célula onde seu valor deveria estar contém `NA`.
+
+O retorno para o primeiro trimestre de 2016 está implicitamente ausente, porque simplesmente não aparece no conjunto de dados.
+
+Uma maneira de pensar sobre a diferença é com este koan do tipo Zen: 
+- Um valor ausente **explícito** é a presença de uma ausência
+- Um valor ausente **implícito** é a ausência de uma presença.
+
+A maneira como um conjunto de dados é representado pode tornar explícitos os valores implícitos. Por exemplo, podemos tornar explícito o valor ausente implícito colocando `Anos` nas colunas:
+
+```{r}
+stocks %>% 
+  pivot_wider(names_from = Anos, values_from = Retornos)
+```
+Como esses valores ausentes **explícitos** podem não ser importantes em outras representações dos dados, você pode definir `values_drop_na = TRUE` em `pivot_longer()` para tornar **implícitos** os valores ausentes **explícitos**:
+
+```{r}
+stocks %>% 
+  pivot_wider(names_from = Anos, values_from = Retornos) %>% 
   pivot_longer(
-    cols = starts_with("ator"), 
-    names_to = "protagonismo",
-    values_to = "ator_atriz"
-  ) %>% 
-  select(titulo, ator_atriz, protagonismo) %>% 
-  head(6)
-```
-
-Se considerarmos que na análise da base IMDB cada observação deve ser um filme, então essa nova base já não mais *tidy*, pois agora cada filme aparece em três linhas diferentes, uma vez para cada um de seus atores.
-
-Nesse sentido, embora possa parecer que a variável `protagonismo` estava implícita na base original, ela não é uma variável de fato. Todos filmes têm um `ator_1`, um `ator_2` e um `ator_3`. Não existe nenhuma informação sobre o filme que podemos tirar da coluna `protagonismo`, pois ela qualifica apenas os atores, não o filme em si.
-
-A função `pivot_wider()` faz a operação inversa da `pivot_longer()`. Sem aplicarmos as duas funções em sequência, voltamos para a base original.
-
-```{r}
-imdb %>% 
-  pivot_longer(
-    cols = starts_with("ator"), 
-    names_to = "ator_protagonismo",
-    values_to = "ator_nome"
-  ) %>% 
-  pivot_wider(
-    names_from = "ator_protagonismo",
-    values_from = "ator_nome"
-  ) %>% 
-  head(4)
-```
-
-A base `imdb` não possui nenhuma variável que faça sentido aplicarmos diretamente a função `pivot_wider()`. Vamos então considerar a seguinte tabela derivada da base `imdb`:
-
-```{r}
-tab_romance_terror <- imdb %>%
-  filter(ano >= 2010) %>%
-  mutate(
-    genero = case_when(
-      stringr::str_detect(generos, "Romance") ~ "Romance",
-      stringr::str_detect(generos, "Horror") ~ "Horror",
-      TRUE ~ NA_character_
-    )
-  ) %>%
-  filter(!is.na(genero)) %>%
-  group_by(ano, genero) %>%
-  summarise(receita_media = mean(receita, na.rm = TRUE))
-```
-
-Essa tabela possui a receita média dos filmes de romance e terror nos anos de 2010 a 2016.
-
-Para apresentar essa tabela em uma reunião, por exemplo, pode ficar ser mais agradável ter os anos nas colunas e não nas linhas. Para isso, basta utilizarmos a função `pivot_wider()`.
-
-```{r}
-# Tabela original
-tab_romance_terror
-```
-
-```{r}
-# Tabela com os anos nas colunas
-tab_romance_terror %>% 
-  pivot_wider(
-    names_from = ano,
-    values_from = receita_media
+    cols = c(`2015`, `2016`), 
+    names_to = "Anos", 
+    values_to = "Retornos", 
+    values_drop_na = TRUE
   )
 ```
 
-Esse é um caso que *bagunçar* um pouquinho a tabela nos trouxe um resultado desejado.
+### `complete()`
 
-### *List columns*
-
-Um terceiro conceito de dados *tidy* é que cada célula da tabela possui um valor. No entanto, quando estamos programando, muitas vezes vale apena abandonar essa definição e guardarmos objetos mais complexos nas células de uma tabela.
-
-Utilizando as chamadas *list columns* podemos guardar virtualmente qualquer objeto em nossas *tibbles*, como gráficos, resultados de modelos ou até mesmo outras tabelas.
-
-Uma forma de trabalhar com *list columns* consiste em utilizarmos as funções
-
-- `nest()`: para criar uma *list column*;
-
-- `unnest()`: para desfazer uma *list column*.
-
-A forma mais simples de utilizarmos uma *list column* é *aninhar* a nossa base com relação a uma variável.
+Outra função importante para tornar **explícitos** os valores ausentes em dados organizados é `complete()`:
 
 ```{r}
-imdb_nest <- imdb %>%
-  group_by(ano) %>%
-  nest() %>% 
-  arrange(ano)
-head(imdb_nest, 8)
+stocks %>% 
+  complete(Anos, Tri)
 ```
+O comando `complete()` pega um conjunto de colunas e encontra todas as combinações únicas. Em seguida, garante que o conjunto de dados original contém todos esses valores, preenchendo `NAs` **explícitos** quando necessário.
 
-A base `imdb_nest` possui duas colunas `ano` e `data` e uma linha para cada ano. Na coluna `data`, temos o restante da base `imdb`, recortada para cada um dos anos.
+### `fill()`
 
-Abaixo, acessmos os dados do único filme de 1916 (primeira linha da base `imdb_nest`).
+Há uma outra ferramenta importante que você deve saber para trabalhar com valores ausentes. Às vezes, quando uma fonte de dados foi usada principalmente para entrada de dados, os valores ausentes indicam que o valor anterior deve ser utilizado:
 
 ```{r}
-imdb_nest$data[[1]]
+tratamento <- tribble(
+  ~ Pessoa,       ~ Tratamento, ~Resposta,
+  "Roberto Silva",    2,           10,
+  NA,                 3,           3,
+  NA,                 1,           7,
+  "Luciana Medeiros", 2,           9
+)
 ```
 
-Imagine que queiramos fazer, para cada ano, um gráfico de dispersão da receita contra o orçamento dos filmes lançados no ano.
-
-Com a base no formato de *list columns*, basta criarmos uma função para gerar o gráfico e utilizarmos a função `purrr::map()`.
-
-Abaixo, construímos a função `fazer_grafico_dispersao()`, que será aplicada a cada uma das bases contidas na coluna `data` da base `imdb_nest`. Os gráficos, respectivamos a cada ano, são salvos na coluna `grafico`.
+Você pode preencher esses valores ausentes com `fill()`. É necessário um conjunto de colunas onde você deseja que os valores ausentes sejam substituídos pelo valor não ausente mais recente (às vezes chamado observação acima do dado faltante).
 
 ```{r}
-fazer_grafico_dispersao <- function(tab) {
-  tab %>%
-    ggplot(aes(x = orcamento, y = receita)) +
-    geom_point()
-}
-imdb_graficos <- imdb_nest %>% 
-  mutate(
-    grafico = purrr::map(data, fazer_grafico_dispersao)
-  )
-head(imdb_graficos, 6)
+tratamento %>% 
+  fill(Pessoa)
+
 ```
 
-Para acessar cada um dos gráficos, basta rodar o código abaixo.
+## Dados aninhados
 
-```{r, fig.height=5, fig.width=5, fig.align="center"}
-# Pegando o gráfico referente ao ano de 2000
-imdb_graficos$grafico[[74]]
-```
+### `Nest()`
 
-Ou, escolhendo diretamente pelo ano
-
-```{r, fig.height=5, fig.width=5, fig.align="center"}
-imdb_graficos %>% 
-  filter(ano == 2000) %>% 
-  pull(grafico)
-```
-
-A função `unnest()` remove a estrutura de *list column*. Fazendo a operação abaixo, voltamos para a base `imdb` original.
+Vamos agora apresentar uma nova estrutura de dados, os dados aninhados. Para criar um `dataset` aninhado, começamos com um `dataset` de dados agrupado e o “aninhamos”:
 
 ```{r}
-imdb_nest %>%
-  unnest(cols = "data")
+
+library(gapminder)
+
+by_country <- gapminder %>% 
+  group_by(country, continent) %>% 
+  nest()
+
+by_country
 ```
 
-### Exercícios
+Isso cria um *dataset* que possui uma linha por grupo (by_country) e uma coluna bastante incomum: `data`. A coluna `data` é uma lista de *dataframes*. Parece uma ideia maluca: temos um *dataframe* com uma coluna que é uma lista de outros *dataframe*! Vou vocês vão ver em breve porque esta é uma boa ideia.
 
-**1.** Crie 5 novas colunas de gêneros na base imdb, cada uma com um dos gêneros contidos na coluna generos. Para os filmes com menos de 5 gêneros, substitua os valores `NA` pela string "inexistente".
+A coluna de `data` é um pouco complicada de olhar porque é uma lista razoavelmente complexa e ainda estamos trabalhando em boas ferramentas para explorar esses objetos. Infelizmente, o uso de `str()` não é recomendado, pois geralmente produz uma saída muito longa. Mas se você retirar um único elemento da coluna de dados, verá que ele contém todos os dados desse país (neste caso, *Brasil*).
 
-**2.** Substitua os "????" no código abaixo para criar uma tabela do lucro médio dos filmes ao longo dos anos de 2000 a 2016, com cada ano sendo uma coluna da base.
+```{r}
+by_country$data[[15]]
+```
+Observe a diferença entre um *dataframe* agrupados padrão e um *dataframe* aninhado: em um *dataset* agrupado, cada linha é uma observação, e em um *dataset* aninhado, cada linha é um **grupo**. Outra maneira de pensar sobre um *dataframe* aninhado é que agora temos uma *meta-observação*: uma linha que representa o curso de tempo completo de um país, em vez de um único ponto no tempo.
 
-```{r, eval = FALSE}
-imdb %>%
-  mutate(lucro = receita - orcamento) %>%
-  filter(ano %in% "????") %>%
-  group_by("????") %>%
-  summarise(lucro_medio = "????") %>%
-  pivot_wider(names_from = "????", values_from = "????")
+### Removendo aninhamento dos dados
+
+A função `unnest()` funciona repetindo as colunas regulares uma vez para cada elemento da *coluna-lista*. Por exemplo, no exemplo a seguir, repetimos a primeira linha 4 vezes (porque lá o primeiro elemento de y tem comprimento quatro) e a segunda linha uma vez:
+
+```{r}
+tibble(x = 1:2, y = list(1:4, 1)) 
 ```
 
-Para os exercícios 3, 4 e 5, vamos utilize a base `pokemon`, disponível no pacote `basesCursoR`.
-
-```{r, eval = FALSE}
-install.packages("remotes")
-remotes::install_github("curso-r/basesCursoR")
+```{r}
+tibble(x = 1:2, y = list(seq(1,10,2), 1)) %>% unnest(y)
 ```
 
-**3.** Utilize a função `unite()` para juntar as duas colunas de tipo em uma única coluna na base pokemon.
 
-**4.** Utilize a função `unite()` para juntar as três colunas de cor em uma única coluna na base pokemon. Faça isso sem remover as 3 colunas originais.
-
-**5.** Utilizando a base `pokemon`, resolva os itens abaixo:
-
-**a.** Utilize a função `pivot_longer()` para criar uma única coluna de tipo na base pokemon.
-
-**b.** Utilize a base criada no item (a) e escreva um código para descobrir qual o tipo mais frequente na base, independentemente se ele é primário (tipo_1) ou secundário (tipo_2).
-
-**6.** Escreva uma função que receba uma base qualquer e o nome de uma coluna numérica dessa base e retorne uma figura com um gráfico de dispersão da coluna escolhida contra cada uma das outras variáveis numéricas da base.
