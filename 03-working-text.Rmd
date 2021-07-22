@@ -5,7 +5,7 @@ Script da aula do Módulo III abaixo.
 xfun::embed_file('Scripts/03-working-text.R')
 ```
 
-## Exemplos reprodutiveis 
+## Exemplos reprodutíveis 
 
 ### Reprex (Pedindo ajuda do jeito certo)
 
@@ -32,6 +32,7 @@ Infelizmente esta alternativa não é tão reprodutível assim e não consigo
 criar um reprex desta forma de usar o `reprex()`.
 
 2. Dentro de chaves {}
+
 Outra alternativa é colocar o código que será rodado como primeiro argumento do 
 `reprex()` envolto em chaves ({}). Realizando seu exemplo e rodando
 
@@ -101,14 +102,14 @@ feature, você terá mais chances de sucesso se incluir um bom `reprex`
 **DICA!**
 :::
 Para conseguir ser efetivo tome seu tempo e valorize o tempo da pessoa que 
-você está pedindo ajuda. Criando um bom exemplo reprodutivel da sua dúvida. 
+você está pedindo ajuda. Criando um bom exemplo reprodutível da sua dúvida. 
 ::::
 
 - Se você está pedindo ajuda em R, relatando um bug ou solicitando uma nova 
 feature, você terá mais chances de sucesso se incluir um bom "reprex"
 
 - Se qualquer parte do seu código é aleatório não esqueça de usar `set.seed()`
-para manter seu código reprodutivel. 
+para manter seu código reprodutível. 
 
 - Considere incluir as chamadas "session info", ou seja, seu sistema operacional 
 e versões de R e pacotes complementares, se for concebível que isso importe.
