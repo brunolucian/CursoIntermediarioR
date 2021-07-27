@@ -1,18 +1,14 @@
 # Programação funcional (purrr) {#funcionais}
 
-Programação funcional (PF) é um paradigma de programação com o qual a maior parte
-dos estatísticos não está familiarizada. Essa técnica costuma ser ignorada na
-maioria dos tutoriais de R por não estar diretamente envolvida com manipulação e
-visualização de dados, mas isso não quer dizer que ela não tenha suas vantagens.
+Programação Funcional (PF) é um estilo de programar que alguns profissionais desenvolveram utilizando a ideia de tratar a programação como funções matemáticas. Esta forma de programar envolve um paradigma de programação com o qual a maior parte
+dos estatísticos não está familiarizada e muitos tutoriais de R costuma ignorar esta técnica por ela não estar diretamente envolvida com manipulação e visualização de dados.
 
-Usando programação funcional podemos criar códigos mais concisos e *pipeáveis*, características que por tabela também tornam mais simples o processo de encontrar erros. Além disso, códigos funcionais geralmente são paralelizáveis, permitindo que tratemos problemas muito grandes com poucas modificações.
+A forma como o código é organizado, utilizando programação funcional, nos permite criar códigos mais concisos e *pipeáveis*, que facilita o trabalho de depurar, estender e documentar o trabalho que está sendo desenvolvido. Além disso, códigos funcionais geralmente são paralelizáveis, permitindo que tratemos problemas muito grandes com poucas modificações.
 
-Apesar de o R `base` já ter funções que podem ser consideradas elementos de PF, a
-implementação destas não é tão elegante e, portanto, este tutorial abordará
-somente a implementação de PF realizada pelo pacote `purrr`.
+R não é uma linguagem de programação funcional pura, mas é possível, no R `base`, escrever código usando o paradigma de programação funcional, entretanto é necessário algum esforço.
+O pacote `purrr` foi desenvolvido com o objetido de fornecer recursos básicos de programação funcional no R com algumas funções muito interessantes.
 
-Para instalar e carregar o `purrr`, rode o código a seguir. Nas próximas seções
-deste tutorial, assumiremos que você têm esse pacote instalado e carregado.
+Para  instalar e carregar o `purrr` basta executar o código a seguir.
 
 ```{r, eval=FALSE}
 install.packages("purrr")
@@ -26,10 +22,7 @@ library(purrr)
 library(tidyverse)
 ```
 
-A primeira família de funções do `purrr` que veremos também é a mais útil e
-extensível. As funções `map()` são quase como substitutas para laços `for`,
-elas abstraem a iteração em apenas uma linha. Veja esse exemplo de laço usando
-`for`:
+Em vez de usar loops, as linguagens de programação puramente funcionais usam funções que alcançam o mesmo resultado. A primeira família de funções do `purrr` que veremos também é a mais útil e extensível. As funções `map()` são muito consistentes e, portanto, mais fáceis de usar. São quase como substitutas para laços `for` e abstraem a iteração em apenas uma linha. Veja esse exemplo de laço usando `for`:
 
 ```{r}
 soma_um <- function(x) { x + 1 }
@@ -40,10 +33,7 @@ for (i in seq_along(obj)) {
 obj
 ```
 
-O que de fato estamos tentando fazer com o laço acima? Temos um vetor (`obj`) e
-queremos aplicar uma função (`soma_um()`) em cada elemento dele. A função `map()`
-remove a necessidade de declaramos um objeto iterador auxiliar (`i`) e
-simplesmente aplica a função desejada em cada elemento do objeto dado.
+O código acima cria uma função com a finalidade de somar uma unidade em cada elemento de um vetor. A utilização da PF por meio da função `map()` aplica a função desejada em cada elemento do objeto dado, dispensando a necessidade de declararmos um iterador auxiliar (`i`).
 
 ```{r}
 soma_um <- function(x) { x + 1 }
@@ -52,15 +42,9 @@ obj <- map(obj, soma_um)
 obj
 ```
 
-Como você deve ter percebido, o resultado da execução acima não é exatamente
-igual ao que tivemos com o laço. Isso acontece porque a `map()` tenta ser
-extremamente genérica, retornando por padrão uma lista com um elemento para
-cada saída.
+Você deve ter percebido que o resultado desta última execução não foi exatamente igual à quando utilizamos o loop, isto aconteceu porque a função `map()` tenta ser mais genérica, retornando por padrão uma lista com um elemento para cada saída.
 
-Se quisermos "achatar" o resultado, devemos informar qual será o seu tipo. Isso
-é super simples e pode ser feito com as irmãs da `map()`: `map_chr()` (para
-strings), `map_dbl()` (para números reais), `map_int()` (para números inteiros) e
-`map_lgl()` (para booleanos).
+Mas é possível "achatar" o resultado informando qual será o seu tipo. Isso pode ser feito por meio da utilização das funções pertencentes à família `map()`: `map_chr()` (para strings), `map_dbl()` (para números reais), `map_int()` (para números inteiros) e `map_lgl()` (para booleanos).
 
 ```{r}
 obj <- 10:15
@@ -75,15 +59,14 @@ Algo bastante útil da família `map()` é a possibilidade de passar argumentos
 fixos para a função que será aplicada. A primeira forma de fazer isso envolve
 fórmulas:
 
+Também é possível utilizar fórmulas dentro da `map()`, basta colocar um til (`~`) antes da função que será chamada. Feito isso, podemos utilizar o placeholder `.x` para indicar onde deve ser colocado cada elemento de `obj`.
+
+
 ```{r}
 soma_n <- function(x, n = 1) { x + n }
 obj <- 10:15
 map_dbl(obj, ~soma_n(.x, 2))
 ```
-
-Como vemos no exemplo acima, para utilizar fórmulas precisamos colocar um til
-(`~`) antes da função que será chamada. Feito isso, podemos utilizar o
-placeholder `.x` para indicar onde deve ser colocado cada elemento de `obj`.
 
 A outra forma de passar argumentos para a função é através das reticências da
 `map()`. Desta maneira precisamos apenas dar o nome do argumento e seu valor
@@ -95,14 +78,11 @@ obj <- 10:15
 map_dbl(obj, soma_n, n = 2)
 ```
 
-Usando fórmulas temos uma maior flexibilidade (podemos, por exemplo, declarar
-funções anônimas como `~.x+2`), enquanto com as reticências temos maior
-legibilidade.
+Usando fórmulas temos maior flexibilidade, pois podemos declarar, por exemplo, funções anônimas como `~.x+2`), enquanto com as reticências temos maior legibilidade.
 
 ## Iterações intermediárias
 
-Agora que já exploramos os básicos da família `map()` podemos partir para
-iterações um pouco mais complexas. Observe o laço a seguir:
+Em algumas situações é necessário realizar operações com mais de um objeto. Observe o laço a seguir:
 
 ```{r}
 soma_ambos <- function(x, y) { x + y }
@@ -114,12 +94,10 @@ for (i in seq_along(obj_1)) {
 obj_1
 ```
 
-Com a função `map2()` podemos reproduzir o laço acima em apenas uma linha. Ela
-abstrai a iteração em paralelo, aplica a função em cada par de elementos das
-entradas e, assim como sua prima `map()`, pode achatar o objeto retornado com os
-sufixos `_chr`, `_dbl`, `_int` e `_lgl`.
+A função `map2()` é uma generalização da `map()` para mais de um argumento e nos permite reproduzir o laço acima em apenas uma linha. A `map2()` abstrai a iteração em paralelo, aplica a função em cada par de elementos das entradas e pode achatar o objeto retornado com os sufixos `_chr`, `_dbl`, `_int` e `_lgl`.
 
 > O termo "paralelo" neste capítulos se refere a laços em mais de uma estrutura e não a paralelização de computações em mais de uma unidade de processamento.
+
 ```{r}
 soma_ambos <- function(x, y) { x + y }
 obj_1 <- 10:15
@@ -128,9 +106,7 @@ obj_1 <- map2_dbl(obj_1, obj_2, soma_ambos)
 obj_1
 ```
 
-Como o pacote `purrr` é extremamente consistente, a `map2()` também funciona com
-reticências e fórmulas. Poderíamos, por exemplo, transformar `soma_ambos()` em
-uma função anônima:
+Como o pacote `purrr` é extremamente consistente, a `map2()` também funciona com reticências, fórmulas e dá acesso ao placeholder `.y` para indicar onde os elementos do segundo vetor devem ir. Poderíamos, por exemplo, transformar `soma_ambos()` em uma função anônima:
 
 ```{r}
 obj_1 <- 10:15
@@ -138,11 +114,7 @@ obj_2 <- 20:25
 map2_dbl(obj_1, obj_2, ~.x+.y)
 ```
 
-Desta vez também temos acesso ao placeholder `.y` para indicar onde os elementos
-de do segundo vetor devem ir.
-
-Para não precisar oferecer uma função para cada número de argumentos, o pacote
-`purrr` fornece a `pmap()`. Para essa função devemos passar uma lista em que cada
+Para não precisar oferecer uma função para cada número de argumentos, o pacote `purrr` fornece a `pmap()`. Para esta função devemos passar uma lista em que cada
 elemento é um dos objetos a ser iterado:
 
 ```{r}
@@ -154,8 +126,7 @@ obj_1 <- pmap_dbl(list(obj_1, obj_2, obj_3), soma_varios)
 obj_1
 ```
 
-Com a `pmap()` infelizmente não podemos usar fórmulas. Se quisermos usar uma
-função anônima com ela, precisamos declará-la a função no seu corpo:
+Infelizmente a `pmap()` não nos permite utilizar fórmulas. Se quisermos usar uma função anônima com ela, precisamos declará-la no seu corpo:
 
 ```{r}
 obj_1 <- 10:15
@@ -179,17 +150,12 @@ ao `i` no laço com `for`). Naturalmente, assim como toda a família `map()`, a
 
 ## Iterações avançadas
 
-Agora que já vimos como substituir iterações de nível básico e de nível
-intermediário com a família `map()`, podemos passar para os tipos mais obscuros
-de laços. Cada item desta seção será mais denso do que os das passadas, por isso
-encorajamos todos os leitores para que também leiam a documentação de cada função
-aqui abordada.
+Agora que já tivemos uma noção da sintaxe da PF com a família `map()`, para substituição de laços, podemos passar para os tipos de laços que envolvem condicionais.
+> Como o objetivo deste módulo é mostrar uma "nova forma" de manipular dados, recomendamos fortemente que vocês não fiquem restritos a este material e também leiam a documentação de cada função aqui abordada.
 
 ### Iterações com condicionais
 
-Imagine que precisamos aplicar uma função somente em alguns elementos de um vetor.
-Com um laço isso é uma tarefa fácil, mas com as funções da família `map()`
-apresentadas até agora isso seria extremamente difícil. Veja o trecho de código
+Imagine que seja necessário aplicar uma função somente em alguns elementos de um vetor. Sabemos que com a utilização de um laço isso é uma tarefa fácil, no entanto com as funções da família `map()` apresentadas até agora isso seria extremamente difícil. Veja o trecho de código
 a seguir por exemplo:
 
 ```{r}
@@ -208,7 +174,9 @@ vetor `obj`. Com o pacote `purrr` temos duas maneiras de fazer isso: com
 
 A primeira dessas funções aplica a função dada apenas quando um predicado é
 `TRUE`. Esse predicado pode ser uma função ou uma fórmula (que serão aplicadas
-em cada elemento da entrada e devem retornar `TRUE` ou `FALSE`). Infelizmente
+em cada elemento da entrada e devem retornar `TRUE` ou `FALSE`).
+
+Infelizmente
 a `map_if()` não funciona com sufixos, então devemos achatar o resultado:
 
 ```{r}
@@ -218,17 +186,14 @@ obj <- 10:15
 map_if(obj, eh_impar, dobra) %>% flatten_dbl()
 ```
 
-Com fórmulas poderíamos eliminar completamente a necessidade de funções
-declaradas:
+Com a utilização de fórmulas poderíamos eliminar completamente a necessidade de funções declaradas:
 
 ```{r}
 obj <- 10:15
 map_if(obj, ~.x%%2 == 1, ~.x*2) %>% flatten_dbl()
 ```
 
-A segunda dessas funções é a irmã gêmea de `map_if()` e funciona de forma muito
-semelhante. Para `map_at()` devemos passar um vetor de nomes ou índices onde a
-função deve ser aplicada:
+A segunda dessas funções é a `map_at()`, que funciona de forma muito semelhante à `map_if()`. Para `map_at()` devemos passar um vetor de nomes ou índices onde a função deve ser aplicada:
 
 ```{r}
 obj <- 10:15
