@@ -168,16 +168,11 @@ for (i in seq_along(obj)) {
 obj
 ```
 
-No exemplo acima, aplicamos a função `dobra()` apenas nos elementos ímpares do
-vetor `obj`. Com o pacote `purrr` temos duas maneiras de fazer isso: com
-`map_if()` ou `map_at()`.
+No exemplo acima, aplicamos a função `dobra()` apenas nos elementos ímpares do vetor `obj`. Com o pacote `purrr` temos duas maneiras de fazer isso: com `map_if()` ou `map_at()`.
 
-A primeira dessas funções aplica a função dada apenas quando um predicado é
-`TRUE`. Esse predicado pode ser uma função ou uma fórmula (que serão aplicadas
-em cada elemento da entrada e devem retornar `TRUE` ou `FALSE`).
+A primeira dessas funções aplica a função dada apenas quando uma condição é satisfeita. Esta condição pode ser a saída de uma função ou uma fórmula (que serão aplicadas em cada elemento da entrada e devem retornar `TRUE` ou `FALSE`).
 
-Infelizmente
-a `map_if()` não funciona com sufixos, então devemos achatar o resultado:
+A função `map_if()`, diferente das apresentadas anteriormente, não funciona com sufixos, isto implica que devemos achatar o resultado:
 
 ```{r}
 eh_impar <- function(x) { x%%2 == 1 }
@@ -186,7 +181,7 @@ obj <- 10:15
 map_if(obj, eh_impar, dobra) %>% flatten_dbl()
 ```
 
-Com a utilização de fórmulas poderíamos eliminar completamente a necessidade de funções declaradas:
+A utilização de fórmulas permite eliminar completamente a necessidade de funções declaradas:
 
 ```{r}
 obj <- 10:15
@@ -202,17 +197,14 @@ map_at(obj, c(2, 4, 6), ~.x*2) %>% flatten_dbl()
 
 ### Iterações com tabelas e funções
 
-Duas funções menos utilizadas da família `map()` são `map_dfc()` e `map_dfr()`,
-que equivalem a um `map()` seguido de um `dplyr::bind_cols()` ou de um
-`dplyr::bind_rows()` respectivamente.
+Ainda dentro da família `map()` existem duas funções, que são menos utilizadas, `map_dfc()` e `map_dfr()`, que retornam um dataframe criado por vinculação de linha e vinculação de coluna, respectivamente. Isto é equivalente a um `map()` seguido de um `dplyr::bind_cols()` ou de um
+`dplyr::bind_rows()`, nesta ordem.
 
-> A maior utilidade dessas funções é quando temos uma tabela espalhada em muitos
+> A maior utilidade dessas funções é quando precisamos estruturar uma tabela com informações espalhadas em muitos
 arquivos. Se elas estiverem divididas por grupos de colunas, podemos usar algo
 como `map_dfc(arquivos, readr::read_csv)` e se elas estiverem
-divididas por grupos de linhas, `map_dfr(arquivos, readr::read_csv)`
-Outro membro obscuro da família `map()` é a `invoke_map()`. Na verdade essa
-função pode ser considerada um membro da família `invoke()`, mas vamos ver
-que as semelhanças são muitas. Primeiramente, vamos demonstrar o que faz a
+divididas por grupos de linhas, `map_dfr(arquivos, readr::read_csv)`.
+Outra função do pacote `purrr` pouco utilizada é a `invoke_map()`. Antes de apresentar a funcionalidade da `invoke_map()`,  vamos demonstrar o que faz a
 `invoke()` sozinha:
 
 ```{r}
@@ -220,11 +212,7 @@ soma_ambos <- function(x, y) { x + y }
 invoke(soma_ambos, list(x = 10, y = 15))
 ```
 
-É fácil de ver que essa função recebe uma função e uma lista de argumentos para
-usar em uma chamada desta. Agora generalizando esta lógica temos `invoke_map()`,
-que chama uma mesma função com uma lista de listas de argumentos ou uma lista
-de funções com uma lista de argumentos. A família `invoke()` também aceita os
-sufixos como veremos a seguir:
+A `invoke` recebe uma função e uma lista de argumentos já a `invoke_map()` pode recerber tanto uma única função com uma lista de argumentos quanto uma lista de funções com uma lista de argumentos, sendo uma generalização da primeira. Assim como a família `map()`, a família `invoke()` também aceita os sufixos, como veremos a seguir:
 
 ```{r}
 soma_ambos <- function(x, y) { x + y }
@@ -236,9 +224,7 @@ invoke_map_dbl(list(soma_um, soma_dois), list(x = 10))
 
 ### Redução e acúmulo
 
-Outras funções simbólicas de programação funcional além da `map()` são `reduce`
-e `accumulate`, que aplicam transformações em valores acumulados. Observe o laço
-a seguir:
+Reduzir é outro conceito importante na programação funcional. Permite partir de uma lista com alguns elementos e obter um objeto com um único elemento, combinando os elementos de alguma forma. Sendo assim o pacote `purrr` possui duas funções que ajudam a realizar essa transformação: `reduce` e `accumulate`, que aplicam transformações em valores acumulados. Observe o laço a seguir:
 
 ```{r}
 soma_ambos <- function(x, y) { x + y }
@@ -249,10 +235,8 @@ for (i in 2:length(obj)) {
 obj
 ```
 
-Essa soma cumulativa é bastante simples, mas não é difícil imaginar uma situação
-em que um programador desavisado confunde um índice com o outro e o *bug* acaba
-passando desapercebido. Para evitar esse tipo de situação, podemos utilizar
-`accumulate()` (tanto com uma função quanto com uma fórmula):
+Essa soma cumulativa é bastante simples, mas também é muito fácil de fazer confusão entre os índices e o *bug* acabar
+passando desapercebido. Para evitar esse tipo de situação, podemos utilizar `accumulate()` ou `reduce` (tanto com uma função quanto com uma fórmula). A diferença entre elas é que a primeira mantém os resultados intermediários, enquanto a segunda retorna o resultado final. Primeiramente vamos mostrar a utilização da `accumulate()`:
 
 ```{r}
 soma_ambos <- function(x, y) { x + y }
@@ -261,34 +245,24 @@ accumulate(obj, soma_ambos)
 accumulate(obj, ~.x+.y)
 ```
 
-**Obs.:** Nesse caso, os placeholders têm significados ligeiramente diferentes.
-Aqui, `.x` é o valor acumulado e `.y` é o valor "atual" do objeto sendo iterado.
+**DICA:** Nesse caso, os placeholders têm significados ligeiramente diferentes. Aqui, `.x` é o valor acumulado e `.y` é o valor "atual" do objeto sendo iterado.
 
-Se não quisermos o valor acumulado em cada passo da iteração, podemos usar
-`reduce()`:
+Se não quisermos o valor acumulado em cada passo da iteração:
 
 ```{r}
 obj <- 10:15
 reduce(obj, ~.x+.y)
 ```
 
-Para a nossa comodidade, essas duas funções também têm variedades paralelas
-(`accumulate2()` e `reduce2()`), assim como variedades invertidas 
-`accumulate_right()` e `reduce_right()`).
+Essas duas funções também têm variedades paralelas (`accumulate2()` e `reduce2()`), assim como variedades invertidas `accumulate_right()` e `reduce_right()`).
 
 ## Miscelânea
 
-Por fim, veremos algumas funções do `purrr` que nêo têm exatamente a ver com
-laços, mas que acabam sendo bastante úteis quando usando as funções que vimos
-até agora. Elas não serão apresentadas em nenhuma ordem específica, este é apenas
-um apanhado de funções sortidas que achamos úteis enquanto programando com o 
-`purrr`.
+A Programação Funcional não facilita apenas para evitar o uso de laços, o `purrr` possui algumas funções que não relacionadas com laços, mas que são bastante úteis quando utilizamos as funções apresentadas até o momento.
 
 ### Manter e descartar
 
-Se quisermos filtrar elementos de um vetor ou lista, podemos usar as funções
-`keep()` e `discard()`. Elas funcionam com fórmulas e podem ser extremamente úteis
-em situações que `dplyr::select()` e `magrittr::extract()` não conseguem cobrir:
+Se tivermos o objetivo de filtrar elementos de um vetor ou lista, podemos usar as funções `keep()`, seleciona elementos que passam por um teste lógico, e `discard()`, seleciona elementos que não passam por um teste lógico. Elas funcionam com fórmulas e podem ser extremamente úteis em situações que `dplyr::select()` e `magrittr::extract()` não conseguem cobrir:
 
 ```{r}
 obj <- list(10:15, 20:25, c(30:34, NA))
@@ -296,14 +270,11 @@ keep(obj, ~any(is.na(.x)))
 discard(obj, ~!any(is.na(.x)))
 ```
 
-No exemplo acima descartamos todos os vetores da lista que não têm pelo menos um
-elemento omisso (`NA`).
+No exemplo acima descartamos todos os vetores da lista que não têm pelo menos um elemento omisso (`NA`).
 
-### A família `is`
+### Verificações
 
-Uma outra família do pacote `purrr` é a `is()`. Com essa série de funções podemos
-fazer verificações extremamente estritas em objetos dos mais variados tipos. Seguem
-alguns poucos exemplos:
+Quando há necessidade de verificar o tipo de um ou mais objetos, existe, no pacote `purrr`, uma outra família que ajuda a realizar essas verificações, que é a `is()`. Esta família possui uma série de funções que nos permite fazer verificações extremamente estritas em objetos dos mais variados tipos. Seguem alguns poucos exemplos:
 
 ```{r}
 is_scalar_integer(10:15)
@@ -314,25 +285,31 @@ is_vector(10:15)
 
 ### Andar e modificar
 
-`walk()` e `modify()` são pequenas alterações da família `map()` que vêm a calhar
-em diversas situações. A primeira destas funciona exatamente igual à `map()` mas
-não devolve resultado, apenas efeitos colaterais; a segunda, não muda a
-estrutura do objeto sendo iterado, ela substitui os próprios elementos da entrada.
+`walk()` e `modify()` são pequenas alterações da família `map()` que vêm a calhar em diversas situações. A primeira destas funciona exatamente igual à `map()` mas
+não devolve resultado, apenas efeitos colaterais, quando não existe a necessidade de utilizar um valor de retorno. Normalmente utilizamos ela quando desejamos renderizar a saída na tela ou salvar arquivos no disco - o importante é a ação, não o valor de retorno. Aqui está um exemplo simples:
 
-> A maior utilidade de `walk` é quando precisamos salvar múltiplas
-tabelas. Para fazer isso, podemos usar algo como
-`walk(tabelas, readr::write_csv)`.
-Um caso de uso interessante da `modify()` é ao lado do sufixo `_if()`,
-combinação que nos permite iterar nas colunas de uma tabela e aplicar
-transformações de tipo apenas quando um predicado for verdade (geralmente de
-queremos transformar as colunas de fator para caractere).
+```{r}
+x <- list(1, "a", 3)
+
+x %>% 
+  walk(print)
+```
+
+Já a a segunda, não muda a estrutura do objeto sendo iterado, ela substitui os próprios elementos da entrada, aplicando a função em cada elemento.
+
+```{r}
+x <- list(1, 2, 3)
+
+modify(x, ~.+2)
+```
+
+
+> A maior utilidade de `walk` é quando precisamos salvar múltiplas tabelas. Para fazer isso, podemos usar algo como
+`walk(tabelas, readr::write_csv)`. Um caso de uso interessante da `modify()` é ao lado do sufixo `_if()`, combinação que nos permite iterar nas colunas de uma tabela e aplicar transformações de tipo apenas quando um atributo for verdade (geralmente de queremos transformar as colunas de fator para caractere).
 
 ### Transposição e indexação profunda
 
-Quando precisarmos lidar com listas complexas e profundas, o `purrr` nos fornece
-duas funções extremamente úteis: `transpose()` e `pluck()`. A primeira transpõe
-uma lista, enquanto a segunda é capaz de acessar elementos profundos de uma lista
-sem a necessidade de colchetes.
+Quando acontece de estarmos trabalhando com listas complexas e profundas, às vezes é necessário acessar algum elemento da mesma ou transpô-la para facilitar a manipulação ou análise. O `purrr` nos fornece duas funções extremamente úteis para facilitar o nosso trabalho: `pluck()` e `transpose()`, respectivamente. A primeira possibilita o acesso de elementos profundos de uma lista sem a necessidade de colchetes, enquanto a segunda transpõe a lista.
 
 ```{r}
 obj <- list(list(a = 1, b = 2, c = 3), list(a = 4, b = 5, c = 6))
@@ -341,33 +318,25 @@ pluck(obj, 2, "b")
 str(transpose(obj))
 ```
 
-**Obs.:** Se você estiver com muitos problemas com listas profundas, dê uma olhada
-nas funções relacionadas a `depth()` pois elas podem ser muito úteis.
+**DICA:** Se você estiver com muitos problemas com listas profundas, dê uma olhada nas funções relacionadas a `depth()` pois elas podem ser muito úteis.
 
 ### Aplicação parcial
 
-Se quisermos pré-preencher os argumentos de uma função (seja para usá-la em uma
-pipeline ou com alguma função do próprio `purrr`), temos `partial()`. Ela funciona
-nos moldes da família `invoke()` e pode ser bastante útil para tornar suas
-pipelines mais enxutas:
+Se o nosso objetivo for definir valor para os arhgumentos de uma função (seja para usá-la em uma pipeline ou com alguma função do próprio `purrr`), podemos utilizar a `partial()`. Ela funciona nos moldes da família `invoke()` e pode ser bastante útil para tornar suas pipelines mais enxutas:
 
 ```{r}
 soma_varios <- function(x, y, z) { x + y + z }
-nova_soma <- partial(soma_varios, x = 1, y = 2)
+nova_soma <- partial(soma_varios, x = 5, y = 10)
 nova_soma(3)
 ```
 
+No exemplo anterior, fixamos o valor de x e y da função `soma_varios`, sendo necessário definir posteriormente apenas o valor de `z`. 
+
 ### Execução segura
 
-Não é incomum executarmos uma função e recebermos um erro de volta. Isso pode ser
-lidado com facilidade em um laço com um condicional, mas essa tarefa já é mais
-complexa quando se trata de programação funcional. Para isso, no `purrr` temos
-algumas funções que embrulham uma função e, quando esta retornar um erro, o
-silenciam e retornam um valor padrão em seu lugar.
+É bem comum criarmos uma função e, quando a executamos, temos um erro como retorno. Isto pode ser contornado com facilidade em um laço com um condicional, mas se trata de uma tarefa mais complexa quando está trabalhando com programação funcional. Desta forma, o `purrr` possui algumas funções que encapsulam as saídas, e quando esta possui um erro, o silenciam e retornam um valor padrão em seu lugar.
 
-`quietly()` retorna uma lista com resultado, saída, mensagem e alertas, `safely()`
-retorna uma lista com resultado e erro (um destes sempre é `NULL`), e `possibly()`
-silencia o erro e retorna um valor dado pelo usuário.
+A função `quietly()` retorna uma lista com resultado, saída, mensagem e alertas, já a `safely()` retorna uma lista com resultado e erro (um destes sempre é `NULL`), e a `possibly()` silencia o erro e retorna um valor dado pelo usuário.
 
 ```{r}
 soma_um <- function(x) { x + 1 }
