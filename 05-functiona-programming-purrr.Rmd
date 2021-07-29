@@ -11,9 +11,11 @@ O pacote `purrr` foi desenvolvido com o objetido de fornecer recursos básicos d
 Para  instalar e carregar o `purrr` basta executar o código a seguir.
 
 ```{r, eval=FALSE}
-install.packages("purrr")
+install.packages(c("Rtools", "devtools", "purrr"))
+devtools::install_github("jennybc/repurrrsive")
 library(tidyverse) # Ou
 library(purrr)
+library(repurrrsive)
 ```
 
 ## Iterações básicas
@@ -24,7 +26,7 @@ library(tidyverse)
 
 Em vez de usar loops, as linguagens de programação puramente funcionais usam funções que alcançam o mesmo resultado. A primeira família de funções do `purrr` que veremos também é a mais útil e extensível. As funções `map()` são muito consistentes e, portanto, mais fáceis de usar. São quase como substitutas para laços `for` e abstraem a iteração em apenas uma linha. Veja esse exemplo de laço usando `for`:
 
-```{r}
+>```{r}
 soma_um <- function(x) { x + 1 }
 obj <- 10:15
 for (i in seq_along(obj)) {
@@ -33,9 +35,19 @@ for (i in seq_along(obj)) {
 obj
 ```
 
-O código acima cria uma função com a finalidade de somar uma unidade em cada elemento de um vetor. A utilização da PF por meio da função `map()` aplica a função desejada em cada elemento do objeto dado, dispensando a necessidade de declararmos um iterador auxiliar (`i`).
-
 ```{r}
+sw_people[[1]]
+
+sw_people[1]
+
+map(sw_people, ~length(.x$starships))
+```
+
+O código acima mostra como é possível extrair informações de forma sequencial sem a necessidade de utilização de laços. A PF, por meio da função `map()`, permite aplicar uma função ou uma fórmula desejada em cada elemento do objeto dado, dispensando a necessidade de declararmos um iterador auxiliar (`i`).
+
+Para utilizar fórmulas dentro da `map()`, basta colocar um til (`~`) antes da função que será chamada, conforme mostrado no exemplo anterior. Feito isso, podemos utilizar o placeholder `.x` para indicar onde deve ser colocado cada elemento do objeto.
+
+>```{r}
 soma_um <- function(x) { x + 1 }
 obj <- 10:15
 obj <- map(obj, soma_um)
@@ -47,8 +59,20 @@ Você deve ter percebido que o resultado desta última execução não foi exata
 Mas é possível "achatar" o resultado informando qual será o seu tipo. Isso pode ser feito por meio da utilização das funções pertencentes à família `map()`: `map_chr()` (para strings), `map_dbl()` (para números reais), `map_int()` (para números inteiros) e `map_lgl()` (para booleanos).
 
 ```{r}
-obj <- 10:15
-map_dbl(obj, soma_um)
+map_int(sw_people, ~ length(.x[["starships"]]))
+
+map_chr(sw_people, ~ .x[["hair_color"]])
+
+map_lgl(sw_people, ~ .x[["gender"]] == "male")
+
+map_dbl(sw_people, ~ .x[["mass"]])
+
+map(sw_people, ~ .x[["mass"]])
+
+map_dbl(sw_people, ~ as.numeric(.x[["mass"]]))
+
+map_chr(sw_people, ~ .x[["mass"]]) %>%
+  readr::parse_number(na = "unknown")
 ```
 
 
@@ -59,16 +83,7 @@ Algo bastante útil da família `map()` é a possibilidade de passar argumentos
 fixos para a função que será aplicada. A primeira forma de fazer isso envolve
 fórmulas:
 
-Também é possível utilizar fórmulas dentro da `map()`, basta colocar um til (`~`) antes da função que será chamada. Feito isso, podemos utilizar o placeholder `.x` para indicar onde deve ser colocado cada elemento de `obj`.
-
-
-```{r}
-soma_n <- function(x, n = 1) { x + n }
-obj <- 10:15
-map_dbl(obj, ~soma_n(.x, 2))
-```
-
-A outra forma de passar argumentos para a função é através das reticências da
+> BRUNO, VAMOS MANTER ESSA PARTE?! A outra forma de passar argumentos para a função é através das reticências da
 `map()`. Desta maneira precisamos apenas dar o nome do argumento e seu valor
 logo após a função `soma_n()`.
 
@@ -78,74 +93,93 @@ obj <- 10:15
 map_dbl(obj, soma_n, n = 2)
 ```
 
-Usando fórmulas temos maior flexibilidade, pois podemos declarar, por exemplo, funções anônimas como `~.x+2`), enquanto com as reticências temos maior legibilidade.
+Usando fórmulas temos maior flexibilidade, pois podemos declarar, por exemplo, funções anônimas como `~.x+2`, ao invés de `soma_dois`, por exemplo), enquanto com as reticências temos maior legibilidade.
 
 ## Iterações intermediárias
 
-Em algumas situações é necessário realizar operações com mais de um objeto. Observe o laço a seguir:
+Em algumas situações é necessário realizar operações com mais de um objeto. O objetivo desta seção é apresentar a função `map2()`, mas antes disso vamos mostrar duas funções (`walk()` e `modify()`) que irão nos ajudar a apresentar a `map2()` mais adiante.
+
+### Andar e modificar
+
+`walk()` e `modify()` são pequenas alterações da família `map()` que vêm a calhar em diversas situações. A primeira destas funciona exatamente igual à `map()` mas
+não devolve resultado, apenas efeitos colaterais, quando não existe a necessidade de utilizar um valor de retorno. Normalmente utilizamos ela quando desejamos renderizar a saída na tela ou salvar arquivos no disco - o importante é a ação, não o valor de retorno. Aqui está um exemplo simples:
 
 ```{r}
-soma_ambos <- function(x, y) { x + y }
-obj_1 <- 10:15
-obj_2 <- 20:25
-for (i in seq_along(obj_1)) {
-  obj_1[i] <- soma_ambos(obj_1[i], obj_2[i])
-}
-obj_1
+x <- list(1, "a", 3)
+
+x %>% 
+  walk(print)
 ```
 
-A função `map2()` é uma generalização da `map()` para mais de um argumento e nos permite reproduzir o laço acima em apenas uma linha. A `map2()` abstrai a iteração em paralelo, aplica a função em cada par de elementos das entradas e pode achatar o objeto retornado com os sufixos `_chr`, `_dbl`, `_int` e `_lgl`.
+Já a a segunda, não muda a estrutura do objeto sendo iterado, ela substitui os próprios elementos da entrada, aplicando a função em cada elemento.
 
+```{r}
+x <- list(1, 2, 3)
+
+modify(x, ~.+2)
+```
+
+> A maior utilidade de `walk` é quando precisamos salvar múltiplas tabelas. Para fazer isso, podemos usar algo como
+`walk(tabelas, readr::write_csv)`. Um caso de uso interessante da `modify()` é ao lado do sufixo `_if()`, combinação que nos permite iterar nas colunas de uma tabela e aplicar transformações de tipo apenas quando um atributo for verdade (geralmente de queremos transformar as colunas de fator para caractere).
+
+A função `map2()` é uma generalização da `map()` para mais de um argumento e nos permite reproduzir o laço acima em apenas uma linha. A `map2()` abstrai a iteração em paralelo, aplica a função em cada par de elementos das entradas e pode achatar o objeto retornado com os sufixos `_chr`, `_dbl`, `_int` e `_lgl`.
 > O termo "paralelo" neste capítulos se refere a laços em mais de uma estrutura e não a paralelização de computações em mais de uma unidade de processamento.
 
 ```{r}
-soma_ambos <- function(x, y) { x + y }
-obj_1 <- 10:15
-obj_2 <- 20:25
-obj_1 <- map2_dbl(obj_1, obj_2, soma_ambos)
-obj_1
+gap_split_small <- gap_split[1:10]
+countries <- names(gap_split_small)
+
+ggplot(gap_split_small[[1]], aes(year, lifeExp)) +
+  geom_line() +
+  labs(title = countries[[1]])
+
+plots <- map2(gap_split_small, countries,
+              ~ ggplot(.x, aes(year, lifeExp)) +
+                geom_line() +
+                labs(title = .y))
+
+plots[[1]]
+
+walk(plots, print)
+
+walk2(.x = plots, .y = countries,
+      ~ ggsave(filename = paste0(.y, ".pdf"), plot = .x))
+
+file.remove(paste0(countries, ".pdf"))
 ```
 
-Como o pacote `purrr` é extremamente consistente, a `map2()` também funciona com reticências, fórmulas e dá acesso ao placeholder `.y` para indicar onde os elementos do segundo vetor devem ir. Poderíamos, por exemplo, transformar `soma_ambos()` em uma função anônima:
-
-```{r}
-obj_1 <- 10:15
-obj_2 <- 20:25
-map2_dbl(obj_1, obj_2, ~.x+.y)
-```
+Como o pacote `purrr` é extremamente consistente, a `map2()` também funciona com reticências, fórmulas e dá acesso ao placeholder `.y` para indicar onde os elementos do segundo vetor devem ir.
 
 Para não precisar oferecer uma função para cada número de argumentos, o pacote `purrr` fornece a `pmap()`. Para esta função devemos passar uma lista em que cada
 elemento é um dos objetos a ser iterado:
 
 ```{r}
-soma_varios <- function(x, y, z) { x + y + z }
-obj_1 <- 10:15
-obj_2 <- 20:25
-obj_3 <- 30:35
-obj_1 <- pmap_dbl(list(obj_1, obj_2, obj_3), soma_varios)
-obj_1
+x <- list(1, 1, 1)
+y <- list(10, 20, 30)
+z <- list(100, 200, 300)
+
+pmap(list(x, y, z), sum)
+
 ```
 
 Infelizmente a `pmap()` não nos permite utilizar fórmulas. Se quisermos usar uma função anônima com ela, precisamos declará-la no seu corpo:
 
 ```{r}
-obj_1 <- 10:15
-obj_2 <- 20:25
-obj_3 <- 30:35
-pmap_dbl(list(obj_1, obj_2, obj_3), function(x, y, z) { x + y + z })
+pmap(list(x, y, z), function(first, second, third) (first + third) * second)
+
+l <- list(a = x, b = y, c = z)
+pmap(l, function(c, b, a) (a + c) * b)
 ```
 
-A última função que veremos nessa seção é a `imap()`. No fundo ela é um
-atalho para `map2(x, names(x), ...)` quando `x` tem nomes e para
-`map2(x, seq_along(x), ...)` caso contrário:
+A última função que veremos nessa seção é a `imap()`. No fundo ela é um atalho para `map2(x, names(x), ...)` quando `x` tem nomes e para `map2(x, seq_along(x), ...)` caso contrário:
 
 ```{r}
-obj <- 10:15
-imap_dbl(obj, ~.x+.y)
+objeto <- 10:20
+imap_dbl(objeto, ~.x+.y)
+
 ```
 
-Como podemos observar, agora `.y` é o placeholder para o índice atual (equivalente
-ao `i` no laço com `for`). Naturalmente, assim como toda a família `map()`, a
+Como podemos observar, agora `.y` é o placeholder para o índice atual (equivalente ao `i` no laço com `for`). Naturalmente, assim como toda a família `map()`, a
 `imap()` também funciona com os sufixos de achatamento.
 
 ## Iterações avançadas
@@ -175,24 +209,30 @@ A primeira dessas funções aplica a função dada apenas quando uma condição 
 A função `map_if()`, diferente das apresentadas anteriormente, não funciona com sufixos, isto implica que devemos achatar o resultado:
 
 ```{r}
-eh_impar <- function(x) { x%%2 == 1 }
-dobra <- function(x) { x*2 }
-obj <- 10:15
-map_if(obj, eh_impar, dobra) %>% flatten_dbl()
+eh_par <- function(x) { x%%2 == 0}
+raiz <- function(x) { sqrt(x) }
+numeros <- 2:20
+map_if(numeros, eh_par, raiz) %>% flatten_dbl()
 ```
 
 A utilização de fórmulas permite eliminar completamente a necessidade de funções declaradas:
 
 ```{r}
-obj <- 10:15
-map_if(obj, ~.x%%2 == 1, ~.x*2) %>% flatten_dbl()
+map_if(numeros, ~.x%%2 == 0, ~sqrt(.x)) %>% flatten_dbl()
+map_if(numeros, ~.x%%2 == 0, ~sqrt(.x), .else = ~.x/2) %>% flatten_dbl()
+```
+
+Também é possível especificar a condição `else`, como mostra o comando a seguir:
+
+```{r}
+map_if(numeros, ~.x%%2 == 0, ~sqrt(.x), .else = ~.x/2) %>%
+  flatten_dbl()
 ```
 
 A segunda dessas funções é a `map_at()`, que funciona de forma muito semelhante à `map_if()`. Para `map_at()` devemos passar um vetor de nomes ou índices onde a função deve ser aplicada:
 
 ```{r}
-obj <- 10:15
-map_at(obj, c(2, 4, 6), ~.x*2) %>% flatten_dbl()
+map_at(numeros, c(2, 4, 6), ~sqrt(.x)) %>% flatten_dbl()
 ```
 
 ### Iterações com tabelas e funções
@@ -208,25 +248,28 @@ Outra função do pacote `purrr` pouco utilizada é a `invoke_map()`. Antes de a
 `invoke()` sozinha:
 
 ```{r}
-soma_ambos <- function(x, y) { x + y }
-invoke(soma_ambos, list(x = 10, y = 15))
+invoke(runif, list(n = 10))
+
+invoke(runif, n = 10)
 ```
 
 A `invoke` recebe uma função e uma lista de argumentos já a `invoke_map()` pode recerber tanto uma única função com uma lista de argumentos quanto uma lista de funções com uma lista de argumentos, sendo uma generalização da primeira. Assim como a família `map()`, a família `invoke()` também aceita os sufixos, como veremos a seguir:
 
 ```{r}
-soma_ambos <- function(x, y) { x + y }
-soma_um <- function(x) { x + 1 }
-soma_dois <- function(x) { x + 2 }
-invoke_map_dbl(soma_ambos, list(list(x = 10, y = 15), list(x = 20, y = 25)))
-invoke_map_dbl(list(soma_um, soma_dois), list(x = 10))
+invoke_map(list(runif, rnorm), list(list(n = 10), list(n = 5)))
+
+invoke_map(list(runif, rnorm), list(list(n = 5)))
+invoke_map(list(runif, rnorm), n = 5)
+
+invoke_map("runif", list(list(n = 5), list(n = 10)))
 ```
 
 ### Redução e acúmulo
 
-Reduzir é outro conceito importante na programação funcional. Permite partir de uma lista com alguns elementos e obter um objeto com um único elemento, combinando os elementos de alguma forma. Sendo assim o pacote `purrr` possui duas funções que ajudam a realizar essa transformação: `reduce` e `accumulate`, que aplicam transformações em valores acumulados. Observe o laço a seguir:
+Reduzir é outro conceito importante na programação funcional. Permite partir de uma lista com alguns elementos e obter um objeto com um único elemento, combinando os elementos de alguma forma. Sendo assim o pacote `purrr` possui duas funções que ajudam a realizar essa transformação: `reduce` e `accumulate`, que aplicam transformações em valores acumulados.
+> Observe o laço a seguir:
 
-```{r}
+>```{r}
 soma_ambos <- function(x, y) { x + y }
 obj <- 10:15
 for (i in 2:length(obj)) {
@@ -235,14 +278,20 @@ for (i in 2:length(obj)) {
 obj
 ```
 
-Essa soma cumulativa é bastante simples, mas também é muito fácil de fazer confusão entre os índices e o *bug* acabar
-passando desapercebido. Para evitar esse tipo de situação, podemos utilizar `accumulate()` ou `reduce` (tanto com uma função quanto com uma fórmula). A diferença entre elas é que a primeira mantém os resultados intermediários, enquanto a segunda retorna o resultado final. Primeiramente vamos mostrar a utilização da `accumulate()`:
+A soma cumulativa utilizando um laço é bastante simples, mas também é muito fácil de fazer confusão entre os índices e o *bug* acabar passando desapercebido. Para evitar esse tipo de situação, podemos utilizar `accumulate()` ou `reduce` (tanto com uma função quanto com uma fórmula). A diferença entre elas é que a primeira mantém os resultados intermediários, enquanto a segunda retorna o resultado final. Primeiramente vamos mostrar a utilização da `accumulate()`:
 
 ```{r}
-soma_ambos <- function(x, y) { x + y }
-obj <- 10:15
-accumulate(obj, soma_ambos)
-accumulate(obj, ~.x+.y)
+1:5 %>% accumulate(`+`)
+1:5 %>% accumulate(`+`, .dir = "backward")
+
+rerun(5, rnorm(100)) %>%
+  set_names(paste0("sim", 1:5)) %>%
+  map(~ accumulate(., ~ .05 + .x + .y)) %>%
+  map_dfr(~ tibble(value = .x, step = 1:100), .id = "simulation") %>%
+  ggplot(aes(x = step, y = value)) +
+    geom_line(aes(color = simulation)) +
+    ggtitle("Simulations of a random walk with drift")
+
 ```
 
 **DICA:** Nesse caso, os placeholders têm significados ligeiramente diferentes. Aqui, `.x` é o valor acumulado e `.y` é o valor "atual" do objeto sendo iterado.
@@ -250,8 +299,7 @@ accumulate(obj, ~.x+.y)
 Se não quisermos o valor acumulado em cada passo da iteração:
 
 ```{r}
-obj <- 10:15
-reduce(obj, ~.x+.y)
+1:5 %>% reduce(`+`)
 ```
 
 Essas duas funções também têm variedades paralelas (`accumulate2()` e `reduce2()`), assim como variedades invertidas `accumulate_right()` e `reduce_right()`).
@@ -265,12 +313,19 @@ A Programação Funcional não facilita apenas para evitar o uso de laços, o `p
 Se tivermos o objetivo de filtrar elementos de um vetor ou lista, podemos usar as funções `keep()`, seleciona elementos que passam por um teste lógico, e `discard()`, seleciona elementos que não passam por um teste lógico. Elas funcionam com fórmulas e podem ser extremamente úteis em situações que `dplyr::select()` e `magrittr::extract()` não conseguem cobrir:
 
 ```{r}
-obj <- list(10:15, 20:25, c(30:34, NA))
-keep(obj, ~any(is.na(.x)))
-discard(obj, ~!any(is.na(.x)))
+rep(10, 10) %>%
+  map(sample, 5) %>%
+  keep(~ mean(.x) > 6)
 ```
 
-No exemplo acima descartamos todos os vetores da lista que não têm pelo menos um elemento omisso (`NA`).
+No exemplo acima estamos mantendo todos os vetores da lista com média maior que 6.
+
+```{r}
+x <- rerun(5, a = rbernoulli(1), b = sample(10))
+x
+x %>% keep("a")
+x %>% discard("a")
+```
 
 ### Verificações
 
@@ -282,30 +337,6 @@ is_bare_integer(10:15)
 is_atomic(10:15)
 is_vector(10:15)
 ```
-
-### Andar e modificar
-
-`walk()` e `modify()` são pequenas alterações da família `map()` que vêm a calhar em diversas situações. A primeira destas funciona exatamente igual à `map()` mas
-não devolve resultado, apenas efeitos colaterais, quando não existe a necessidade de utilizar um valor de retorno. Normalmente utilizamos ela quando desejamos renderizar a saída na tela ou salvar arquivos no disco - o importante é a ação, não o valor de retorno. Aqui está um exemplo simples:
-
-```{r}
-x <- list(1, "a", 3)
-
-x %>% 
-  walk(print)
-```
-
-Já a a segunda, não muda a estrutura do objeto sendo iterado, ela substitui os próprios elementos da entrada, aplicando a função em cada elemento.
-
-```{r}
-x <- list(1, 2, 3)
-
-modify(x, ~.+2)
-```
-
-
-> A maior utilidade de `walk` é quando precisamos salvar múltiplas tabelas. Para fazer isso, podemos usar algo como
-`walk(tabelas, readr::write_csv)`. Um caso de uso interessante da `modify()` é ao lado do sufixo `_if()`, combinação que nos permite iterar nas colunas de uma tabela e aplicar transformações de tipo apenas quando um atributo for verdade (geralmente de queremos transformar as colunas de fator para caractere).
 
 ### Transposição e indexação profunda
 
