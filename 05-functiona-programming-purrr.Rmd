@@ -1,5 +1,10 @@
 # Programação funcional (purrr) {#funcionais}
 
+Script da aula do Módulo IV abaixo.
+```{r, echo=FALSE}
+xfun::embed_file('Scripts/05-purrr.R',name = "Download do script do módulo 5")
+```
+
 Programação Funcional (PF) é um estilo de programar que alguns profissionais desenvolveram utilizando a ideia de tratar a programação como funções matemáticas. Esta forma de programar envolve um paradigma de programação com o qual a maior parte
 dos estatísticos não está familiarizada e muitos tutoriais de R costuma ignorar esta técnica por ela não estar diretamente envolvida com manipulação e visualização de dados.
 
@@ -22,11 +27,12 @@ library(repurrrsive)
 
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
 library(tidyverse)
+library(repurrrsive)
 ```
 
 Em vez de usar loops, as linguagens de programação puramente funcionais usam funções que alcançam o mesmo resultado. A primeira família de funções do `purrr` que veremos também é a mais útil e extensível. As funções `map()` são muito consistentes e, portanto, mais fáceis de usar. São quase como substitutas para laços `for` e abstraem a iteração em apenas uma linha. Veja esse exemplo de laço usando `for`:
 
->```{r}
+```{r}
 soma_um <- function(x) { x + 1 }
 obj <- 10:15
 for (i in seq_along(obj)) {
@@ -47,7 +53,7 @@ O código acima mostra como é possível extrair informações de forma sequenci
 
 Para utilizar fórmulas dentro da `map()`, basta colocar um til (`~`) antes da função que será chamada, conforme mostrado no exemplo anterior. Feito isso, podemos utilizar o placeholder `.x` para indicar onde deve ser colocado cada elemento do objeto.
 
->```{r}
+```{r}
 soma_um <- function(x) { x + 1 }
 obj <- 10:15
 obj <- map(obj, soma_um)
@@ -65,8 +71,6 @@ map_chr(sw_people, ~ .x[["hair_color"]])
 
 map_lgl(sw_people, ~ .x[["gender"]] == "male")
 
-map_dbl(sw_people, ~ .x[["mass"]])
-
 map(sw_people, ~ .x[["mass"]])
 
 map_dbl(sw_people, ~ as.numeric(.x[["mass"]]))
@@ -76,14 +80,14 @@ map_chr(sw_people, ~ .x[["mass"]]) %>%
 ```
 
 
-> O `purrr` também nos fornece outra ferramenta interessante para
+O `purrr` também nos fornece outra ferramenta interessante para
 achatar listas: a família `flatten()`. No fundo, `map_chr()`
 é quase um atalho para `map() %>% flatten_chr()`!
 Algo bastante útil da família `map()` é a possibilidade de passar argumentos
 fixos para a função que será aplicada. A primeira forma de fazer isso envolve
 fórmulas:
 
-> BRUNO, VAMOS MANTER ESSA PARTE?! A outra forma de passar argumentos para a função é através das reticências da
+A outra forma de passar argumentos para a função é através das reticências da
 `map()`. Desta maneira precisamos apenas dar o nome do argumento e seu valor
 logo após a função `soma_n()`.
 
@@ -123,6 +127,7 @@ modify(x, ~.+2)
 `walk(tabelas, readr::write_csv)`. Um caso de uso interessante da `modify()` é ao lado do sufixo `_if()`, combinação que nos permite iterar nas colunas de uma tabela e aplicar transformações de tipo apenas quando um atributo for verdade (geralmente de queremos transformar as colunas de fator para caractere).
 
 A função `map2()` é uma generalização da `map()` para mais de um argumento e nos permite reproduzir o laço acima em apenas uma linha. A `map2()` abstrai a iteração em paralelo, aplica a função em cada par de elementos das entradas e pode achatar o objeto retornado com os sufixos `_chr`, `_dbl`, `_int` e `_lgl`.
+
 > O termo "paralelo" neste capítulos se refere a laços em mais de uma estrutura e não a paralelização de computações em mais de uma unidade de processamento.
 
 ```{r}
@@ -379,14 +384,9 @@ s_soma_um(obj)
 
 ## Exercícios
 
-A base `imdb` nos exercícios abaixo pode ser baixada [clicando aqui](https://github.com/curso-r/livro-material/raw/master/assets/data/imdb.rds).
-
 **1.** Utilize a função `map()` para calcular a média de cada coluna da base `mtcars`.
 
 **2.** Use a função `map()` para testar se cada elemento do vetor `letters` é uma vogal ou não. Dica: você precisará criar uma função para testar se é uma letra é vogal. Faça o resultado ser (a) uma lista de `TRUE/FALSE` e (b) um vetor de `TRUE/FALSE`.
 
 **3** Faça uma função que divida um número por 2 se ele for par ou multiplique ele por 2 caso seja ímpar. Utilize uma função `map` para aplicar essa função ao vetor `1:100`. O resultado do código deve ser um vetor numérico.
 
-**4.** Use a função `map()` para criar gráficos de dispersão da receita vs orçamento para os filmes da base `imdb`. Os filmes de cada ano deverão compor um gráfico diferente. Faça o resultado ser (a) uma lista de gráficos e (b) uma nova coluna na base `imdb` (utilizando a função `tidyr::nest()`).
-
-**5.** Utilize a função `walk` para salvar cada ano da base `imdb` em um arquivo `.rds` diferente, isto é, o arquivo `imdb_2001.rds`, por exemplo, deve conter apenas filmes do ano de 2001.

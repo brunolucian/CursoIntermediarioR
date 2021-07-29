@@ -450,7 +450,7 @@ data_string <- "21-10-2015"
 class(data_string)
 # data_date <- date(data_string)
 # class(data_date)
-data_date
+# data_date
 data_as_date <- as_date(data_string)
 class(data_as_date)
 data_as_date
