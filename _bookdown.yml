@@ -8,5 +8,6 @@ rmd_files: ["index.Rmd",
 "02-tidying-data.Rmd",
 "03-working-text.Rmd",
 "04-dates-categorical-variables.Rmd",
-"05-functiona-programming-purrr.Rmd"
+"05-functiona-programming-purrr.Rmd",
+"06-creating-dashboards.Rmd"
 ]

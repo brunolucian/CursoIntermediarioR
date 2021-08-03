@@ -1,0 +1,224 @@
+# Shiny app - Básico {#basic-app}
+
+## Introdução
+
+Neste capítulo, criaremos um aplicativo Shiny simples.
+Vamos começar mostrando o padrão mínimo necessário para um aplicativo Shiny e, em seguida, você aprenderá como iniciá-lo e interrompê-lo.
+Em seguida, você aprenderá os dois componentes principais de cada aplicativo Shiny: a **UI** (abreviação de interface do usuário), que define como seu aplicativo *parece*, e a **função de server** que define como seu aplicativo *funciona*.
+O Shiny usa a **programação reativa** para atualizar automaticamente as saídas quando as entradas mudam, então terminaremos o capítulo aprendendo o terceiro componente importante dos aplicativos Shiny: expressões reativas.
+
+Se você ainda não instalou o Shiny, instale-o agora com:
+
+```{r, eval = FALSE}
+install.packages("shiny")
+```
+
+```{r setup}
+library(shiny)
+```
+
+## Criando um app
+
+Existem várias maneiras de criar um aplicativo Shiny.
+O mais simples é criar um novo diretório para seu aplicativo e colocar um único arquivo chamado `app.R` nele.
+Este arquivo `app.R` será usado para dizer ao Shiny como seu aplicativo deve se parecer e como deve se comportar.
+
+Experimente criando um novo diretório e adicionando um arquivo `app.R` semelhante a este:
+    
+```{r eval = FALSE}
+library(shiny)
+ui <- fluidPage(
+  "Hello, world!"
+)
+server <- function(input, output, session) {
+}
+shinyApp(ui, server)
+```
+
+Este é um aplicativo Shiny completo, embora trivial!
+Olhando de perto o código acima, nosso `app.R` faz quatro coisas:
+
+1. Chama `library(shiny)` para carregar o pacote `shiny`.
+
+2. Ele define a interface do usuário, a página HTML com a qual os humanos interagem.
+     Nesse caso, é uma página que contém as palavras "Olá, mundo!".
+
+3. Ele especifica o comportamento de nosso aplicativo definindo uma função `server`.
+     No momento, está vazio, então nosso aplicativo não *faz* nada, mas voltaremos para revisitar isso em breve.
+
+4. Ele executa `ShinyApp(ui, server)` para construir e iniciar um aplicativo Shiny a partir da IU e do server.
+
+::: {.rmdnote}
+**RStudio Tip**: Existem duas maneiras convenientes de criar um novo aplicativo no RStudio:
+
+- Crie um novo diretório e um arquivo `app.R` contendo um aplicativo básico em uma etapa clicando em **Arquivo \ | Novo projeto** e, em seguida, selecione **Novo diretório** e **Aplicativo Web Shiny**.
+
+- Se você já criou o arquivo `app.R`, pode adicionar rapidamente o aplicativo digitando "shinyapp" e pressionando `Shift + Tab`.
+:::
+
+## Executando e parando nosso aplicativo
+
+Tem algumas manerias de rodar o app:
+
+-   Clique no **Run App** (Figure \@ref(fig:run-app)) barra de documentos.
+
+-   Com atalho: `Cmd/Ctrl` + `Shift` + `Enter`.
+
+```{r run-app, out.width = NULL, echo = FALSE, fig.cap = "The Run App button can be found at the top-right of the source pane."}
+knitr::include_graphics("fig/run-app.png")
+```
+
+Pick one of these options, and check that you see the same app as in Figure \@ref(fig:hello-world).
+Congratulations!
+You've made your first Shiny app.
+
+```{r hello-world, out.width = NULL, echo = FALSE, fig.cap = "The very basic shiny app you'll see when you run the code above"}
+knitr::include_graphics("fig/hello-world.png")
+```
+
+Antes de fechar o aplicativo, volte ao RStudio e verifique o console `R`.
+Você notará que diz algo como:
+
+```{r}
+#> Listening on http://127.0.0.1:3827
+```
+
+Isso informa a URL onde seu aplicativo pode ser encontrado: 127.0.0.1 é um endereço padrão que significa "localost" e 3827 é um número de porta atribuído aleatoriamente.
+
+Você pode inserir esse URL em qualquer navegador da web compatível para abrir outra cópia do seu aplicativo.
+
+Observe também que o console do `R` está ocupado: o prompt `R` não está visível e a barra de ferramentas do console exibe um ícone de sinal de parada.
+Enquanto um aplicativo Shiny está em execução, ele "bloqueia" o console `R`.
+Isso significa que você não pode executar novos comandos no console `R` até que o aplicativo Shiny pare.
+
+Você pode parar o aplicativo e retornar o acesso ao console usando qualquer uma destas opções:
+
+- Clique no ícone do sinal de parada na barra de ferramentas do console `R`.
+
+- Clique no console e pressione `Esc` (ou pressione` Ctrl` + `C` se você não estiver usando o RStudio).
+
+- Feche a janela do aplicativo Shiny.
+
+O fluxo de trabalho básico de desenvolvimento de aplicativo Shiny é escrever algum código, iniciar o aplicativo, brincar com o aplicativo, escrever mais algum código e repetir.
+
+Se estiver usando o RStudio, você nem precisa parar e reiniciar o aplicativo para ver suas alterações --- você pode pressionar o botão **Recarregar aplicativo** na caixa de ferramentas ou usar o `Cmd / Ctrl Atalho de teclado `+` Shift` + `Enter`.
+
+
+## Trabalhando com controles na UI
+
+A seguir, adicionaremos algumas entradas e saídas à nossa *IU* para que não seja *tão* tão mínimo.
+Faremos um aplicativo muito simples que mostra todos os quadros de dados integrados incluídos no pacote de conjuntos de dados.
+
+Substitua seu `ui` por este código:
+
+```{r}
+ui <- fluidPage(
+  selectInput("dataset", label = "Dataset", choices = ls("package:datasets")),
+  verbatimTextOutput("summary"),
+  tableOutput("table")
+)
+```
+
+Este exemplo usa quatro novas funções:
+
+- `fluidPage()` é uma **função de layout** que configura a estrutura visual básica da página.
+
+- `selectInput()` é um **controle de entrada** que permite ao usuário interagir com o aplicativo fornecendo um valor.
+    Neste caso, é uma caixa de seleção com o rótulo "Conjunto de dados" e permite que você escolha um dos conjuntos de dados integrados que vêm com R.
+    
+- `verbatimTextOutput()` e `tableOutput()` são **controles de saída** que dizem ao Shiny *onde* colocar a saída renderizada.
+    `verbatimTextOutput()` exibe o código e `tableOutput()` exibe as tabelas.
+
+As funções de layout, entradas e saídas têm usos diferentes, mas são fundamentalmente os mesmos nos bastidores: são apenas formas sofisticadas de gerar *HTML* e, se você chamar qualquer uma delas fora de um aplicativo Shiny, verá HTML impresso no console.
+Não tenha medo de fuçar para ver como esses vários layouts e controles funcionam.
+
+Vá em frente e execute o aplicativo novamente.
+Agora você verá a Figura \@ref(fig: basic-ui), uma página que contém uma caixa de seleção.
+Vemos apenas a entrada, não as duas saídas, porque ainda não dissemos ao Shiny como a entrada e as saídas estão relacionadas.
+
+```{r basic-ui, echo = FALSE, out.width = NULL, fig.cap="The datasets app with UI", message = FALSE}
+knitr::include_graphics("fig/ui.png")
+```
+
+## Trabalhando com server-side
+
+A seguir, daremos vida às saídas, definindo-as na função de servidor.
+
+O Shiny usa programação reativa para tornar os aplicativos interativos.
+
+É a diferença entre dar uma receita a alguém e exigir que façam um sanduíche para você.
+
+Nós diremos ao Shiny como preencher as saídas `summary` e` table` no aplicativo de amostra, fornecendo as "receitas" para essas saídas.
+
+Substitua sua função `server` vazia por esta:
+
+```{r}
+server <- function(input, output, session) {
+  output$summary <- renderPrint({
+    dataset <- get(input$dataset, "package:datasets")
+    summary(dataset)
+  })
+  
+  output$table <- renderTable({
+    dataset <- get(input$dataset, "package:datasets")
+    dataset
+  })
+}
+```
+
+O lado esquerdo do operador de atribuição (`<-`),`output$ID`, indica que você está fornecendo a receita para a saída do Shiny com esse `ID`.
+O lado direito da atribuição usa uma **função de renderização** específica para envolver algum código fornecido por você.
+Cada função `render {Type}` é projetada para produzir um tipo específico de saída (por exemplo, texto, tabelas e gráficos), e muitas vezes é emparelhada com uma função `{type} Output`.
+Por exemplo, neste aplicativo, `renderPrint()` é emparelhado com `verbatimTextOutput()` para exibir um resumo estatístico com texto de largura fixa (textual), e `renderTable()` é emparelhado com `tableOutput()` para mostrar os dados de entrada em uma tabela.
+
+Execute o aplicativo novamente e experimente, observando o que acontece com a saída quando você altera uma entrada.
+A Figura \@ref(fig:basic-server) mostra o que você deve ver ao abrir o aplicativo.
+
+```{r basic-server, echo = FALSE, out.width = "75%", fig.cap = "Now that we've provided a server function that connects outputs and inputs, we have a fully functional app", message = FALSE}
+knitr::include_graphics("fig/server.png")
+```
+
+Observe que o resumo e a tabela são atualizados sempre que você altera o conjunto de dados de entrada.
+Esta dependência é criada implicitamente porque nos referimos a `input$dataset` dentro das funções de saída.
+`input$dataset` é preenchido com o valor atual do componente UI com id `dataset`, e fará com que as saídas sejam atualizadas automaticamente sempre que esse valor mudar.
+Esta é a essência da **reatividade**: as saídas automaticamente *reagem* (recalculam) quando suas entradas mudam.
+
+## Reducindo duplicação na reatividade
+
+Mesmo neste exemplo simples, temos algum código que está duplicado: a linha a seguir está presente em ambas as saídas.
+
+```{r, eval = FALSE}
+dataset <- get(input$dataset, "package:datasets")
+```
+
+Em todo tipo de programação, é uma prática ruim ter código duplicado; pode ser um desperdício computacional e, mais importante, aumenta a dificuldade de manter ou depurar o código.
+Não é tão importante aqui, mas eu queria ilustrar a ideia básica em um contexto muito simples.
+
+No script `R` tradicional, usamos duas técnicas para lidar com código duplicado: capturamos o valor usando uma variável ou capturamos o cálculo com uma função.
+
+Infelizmente, nenhuma dessas abordagens funciona aqui e precisamos de um novo mecanismo: **expressões reativas**.
+
+Você cria uma expressão reativa envolvendo um bloco de código em `reactive({...})` e atribuindo-o a uma variável, e você usa uma expressão reativa chamando-a como uma função.
+Mas, embora pareça que você está chamando uma função, uma expressão reativa tem uma diferença importante: ela só é executada na primeira vez que é chamada e, em seguida, armazena seu resultado em cache até que precise ser atualizado.
+
+Podemos atualizar nosso `server()` para usar expressões reativas, como mostrado abaixo.
+O aplicativo se comporta de forma idêntica, mas funciona com um pouco mais de eficiência, pois só precisa recuperar o conjunto de dados uma vez, não duas.
+
+```{r, eval = FALSE}
+server <- function(input, output, session) {
+  # Create a reactive expression
+  dataset <- reactive({
+    get(input$dataset, "package:datasets")
+  })
+  output$summary <- renderPrint({
+    # Use a reactive expression by calling it like a function
+    summary(dataset())
+  })
+  
+  output$table <- renderTable({
+    dataset()
+  })
+}
+```
+
+

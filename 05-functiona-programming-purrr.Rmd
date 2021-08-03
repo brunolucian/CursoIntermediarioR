@@ -123,12 +123,12 @@ x <- list(1, 2, 3)
 modify(x, ~.+2)
 ```
 
-> A maior utilidade de `walk` é quando precisamos salvar múltiplas tabelas. Para fazer isso, podemos usar algo como
+ A maior utilidade de `walk` é quando precisamos salvar múltiplas tabelas. Para fazer isso, podemos usar algo como
 `walk(tabelas, readr::write_csv)`. Um caso de uso interessante da `modify()` é ao lado do sufixo `_if()`, combinação que nos permite iterar nas colunas de uma tabela e aplicar transformações de tipo apenas quando um atributo for verdade (geralmente de queremos transformar as colunas de fator para caractere).
 
 A função `map2()` é uma generalização da `map()` para mais de um argumento e nos permite reproduzir o laço acima em apenas uma linha. A `map2()` abstrai a iteração em paralelo, aplica a função em cada par de elementos das entradas e pode achatar o objeto retornado com os sufixos `_chr`, `_dbl`, `_int` e `_lgl`.
 
-> O termo "paralelo" neste capítulos se refere a laços em mais de uma estrutura e não a paralelização de computações em mais de uma unidade de processamento.
+ O termo "paralelo" neste capítulos se refere a laços em mais de uma estrutura e não a paralelização de computações em mais de uma unidade de processamento.
 
 ```{r}
 gap_split_small <- gap_split[1:10]
@@ -190,7 +190,7 @@ Como podemos observar, agora `.y` é o placeholder para o índice atual (equival
 ## Iterações avançadas
 
 Agora que já tivemos uma noção da sintaxe da PF com a família `map()`, para substituição de laços, podemos passar para os tipos de laços que envolvem condicionais.
-> Como o objetivo deste módulo é mostrar uma "nova forma" de manipular dados, recomendamos fortemente que vocês não fiquem restritos a este material e também leiam a documentação de cada função aqui abordada.
+Como o objetivo deste módulo é mostrar uma "nova forma" de manipular dados, recomendamos fortemente que vocês não fiquem restritos a este material e também leiam a documentação de cada função aqui abordada.
 
 ### Iterações com condicionais
 
@@ -245,7 +245,7 @@ map_at(numeros, c(2, 4, 6), ~sqrt(.x)) %>% flatten_dbl()
 Ainda dentro da família `map()` existem duas funções, que são menos utilizadas, `map_dfc()` e `map_dfr()`, que retornam um dataframe criado por vinculação de linha e vinculação de coluna, respectivamente. Isto é equivalente a um `map()` seguido de um `dplyr::bind_cols()` ou de um
 `dplyr::bind_rows()`, nesta ordem.
 
-> A maior utilidade dessas funções é quando precisamos estruturar uma tabela com informações espalhadas em muitos
+A maior utilidade dessas funções é quando precisamos estruturar uma tabela com informações espalhadas em muitos
 arquivos. Se elas estiverem divididas por grupos de colunas, podemos usar algo
 como `map_dfc(arquivos, readr::read_csv)` e se elas estiverem
 divididas por grupos de linhas, `map_dfr(arquivos, readr::read_csv)`.
@@ -272,9 +272,9 @@ invoke_map("runif", list(list(n = 5), list(n = 10)))
 ### Redução e acúmulo
 
 Reduzir é outro conceito importante na programação funcional. Permite partir de uma lista com alguns elementos e obter um objeto com um único elemento, combinando os elementos de alguma forma. Sendo assim o pacote `purrr` possui duas funções que ajudam a realizar essa transformação: `reduce` e `accumulate`, que aplicam transformações em valores acumulados.
-> Observe o laço a seguir:
+Observe o laço a seguir:
 
->```{r}
+```{r}
 soma_ambos <- function(x, y) { x + y }
 obj <- 10:15
 for (i in 2:length(obj)) {
