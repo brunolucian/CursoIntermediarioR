@@ -1,5 +1,11 @@
 # Shiny app - Básico {#basic-app}
 
+Scripts para aula do Módulo VI.
+```{r, echo=FALSE}
+xfun::embed_file('Scripts/shiny_helpers.zip')
+```
+
+
 ## Introdução
 
 Neste capítulo, criaremos um aplicativo Shiny simples.
@@ -13,7 +19,7 @@ Se você ainda não instalou o Shiny, instale-o agora com:
 install.packages("shiny")
 ```
 
-```{r setup}
+```{r}
 library(shiny)
 ```
 
